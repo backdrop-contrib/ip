@@ -1,0 +1,250 @@
+<?php
+// \$Id\$
+
+/**
+ * @file
+ * IP address manager module.
+ */
+
+/**
+ * Implementation of hook_perm().
+ */
+function ip_perm() {
+  return array(
+    'manage ip addresses',
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function ip_menu() {
+  $items = array();
+  $items['user/%user/ip'] = array(
+    'title' => 'Manage IP addresses',
+    'page callback' => 'ip_user_manage',
+    'page arguments' => array(1),
+    'access arguments' => array('manage IP addresses'),
+    'type' => MENU_LOCAL_TASK,
+    'description' => t("Manage a user's IP addresses."),
+  );
+  $items['user/ip/%'] = array(
+    'title' => 'Manage IP addresses',
+    'page callback' => 'ip_manage',
+    'page arguments' => array(2),
+    'access arguments' => array('manage IP addresses'),
+    'type' => MENU_LOCAL_TASK,
+    'description' => t("Manage a user's IP addresses."),
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function ip_theme(&$existing) {
+  return array(
+    'ip_tracker_user_records' => array(
+      'arguments' => array(
+        'account' => NULL,
+      ),
+    ),
+    'ip_tracker_ip_records' => array(
+      'arguments' => array(
+        'ip' => NULL,
+      ),
+    ),
+    'ip_username' => array(
+      'arguments' => array(
+        'account' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Page callback for user IP address management.
+ */
+function ip_user_manage($account) {
+  $out = theme('ip_tracker_user_records', $account);
+  return $out;
+}
+
+/**
+ * Page callback for IP address management.
+ */
+function ip_manage($ip) {
+  $out = theme('ip_tracker_ip_records', $ip);
+  return $out;
+}
+
+/**
+ * Implementation of hook_user().
+ */
+function ip_user($op, &$edit, &$account, $category = NULL) {
+  if ($op == 'login') {
+    ip_tracker_insert($account->uid);
+  }
+}
+
+/**
+ * Insert a record into the ip_tracker table.
+ */
+function ip_tracker_insert($uid) {
+  // Check to see if a row exists for this uid/ip combination.
+  $sql = "SELECT visits FROM {ip_tracker} WHERE uid = %d AND ip = '%s'";
+  $args = array($uid, ip_address());
+  $visits = db_result(db_query($sql, $args));
+
+  if ($visits) {
+    // Update.
+    $sql = "UPDATE {ip_tracker} SET visits = %d, last_visit = %d WHERE uid = %d AND ip = '%s'";
+    $args = array($visits + 1, time(), $uid, ip_address());
+    db_query($sql, $args);
+  }
+  else {
+    // Insert.
+    $sql = "INSERT INTO {ip_tracker} (uid, ip, visits, first_visit, last_visit) VALUES (%d, '%s', 1, %d, %d)";
+    $args = array($uid, ip_address(), time(), time());
+    db_query($sql, $args);
+  }
+}
+
+/**
+ * Get the records from the tracker for a user.
+ */
+function ip_tracker_user_records($uid) {
+  $sql = "SELECT * FROM {ip_tracker} WHERE uid = %d";
+  $args = array($uid);
+  $result = db_query($sql, $args);
+  $rows = array();
+  while ($row = db_fetch_array($result)) {
+    $rows[] = $row;
+  }
+  return $rows;
+}
+
+/**
+ * Get the records from the tracker for an IP.
+ */
+function ip_tracker_ip_records($ip) {
+  $sql = "SELECT * FROM {ip_tracker} WHERE ip = '%s'";
+  $args = array($ip);
+  $result = db_query($sql, $args);
+  $rows = array();
+  while ($row = db_fetch_array($result)) {
+    $rows[] = $row;
+  }
+  return $rows;
+}
+
+/**
+ * Count how many users have been tracked against an IP.
+ */
+function ip_tracker_ip_user_count($ip) {
+  $sql = "SELECT COUNT(uid) FROM {ip_tracker} WHERE ip = '%s'";
+  $args = array($ip);
+  $count = db_result(db_query($sql, $args));
+  return $count;
+}
+
+/**
+ * Theme the IP tracker records for a user.
+ */
+function theme_ip_tracker_user_records($account) {
+  // Set the page title.
+  drupal_set_title(
+    t(
+      'Manage IP addresses for %user',
+      array('%user' => $account->name)
+    )
+  );
+  // Get the record data.
+  $records = ip_tracker_user_records($account->uid);
+  // Create a table header.
+  $header = array(
+    t('IP address'),
+    t('Visits'),
+    t('First visit'),
+    t('Last visit'),
+    t('User count'),
+  );
+  foreach ($records as $record) {
+    // Count the users tracked using this IP.
+    $count = ip_tracker_ip_user_count($record['ip']);
+    if ($count > 1) {
+      // There are multiple users recorded with this IP - link to the IP page.
+      $count_field = l(t('!count users', array('!count' => $count)), 'user/ip/'. $record['ip']);
+    }
+    else {
+      // There is only this user recorded with this IP.
+      $count_field = t('1 user');
+    }
+    // Build a table row.
+    $rows[] = array(
+      l($record['ip'], 'user/ip/'. $record['ip']),
+      $record['visits'],
+      format_date($record['first_visit']),
+      format_date($record['last_visit']),
+      $count_field,
+    );
+  }
+  $out = theme('table', $header, $rows);
+  return $out;
+}
+
+/**
+ * Theme the IP tracker records for an IP.
+ */
+function theme_ip_tracker_ip_records($ip) {
+  // Set the page title.
+  drupal_set_title(
+    t(
+      'Manage IP address %ip',
+      array('%ip' => $ip)
+    )
+  );
+  // Get the record data.
+  $records = ip_tracker_ip_records($ip);
+  // Create a table header.
+  $header = array(
+    t('User'),
+    t('Visits'),
+    t('First visit'),
+    t('Last visit'),
+  );
+  foreach ($records as $record) {
+    $account = user_load($record['uid']);
+    // Check that account is loaded.
+    if ($account) {
+      // Build a table row.
+      $rows[] = array(
+        theme('ip_username', $account),
+        $record['visits'],
+        format_date($record['first_visit']),
+        format_date($record['last_visit']),
+      );
+    }
+  }
+  $out = theme('table', $header, $rows);
+  return $out;
+}
+
+/**
+ * Theme a username for display in the IP tracker.
+ *
+ * A modified version of theme_username().
+ */
+function theme_ip_username($account) {
+  // Shorten the name when it is too long or it will break many tables.
+  if (drupal_strlen($account->name) > 20) {
+    $name = drupal_substr($account->name, 0, 15) . '...';
+  }
+  else {
+    $name = $account->name;
+  }
+
+  $output = l($name, 'user/' . $account->uid . '/ip', array('attributes' => array('title' => t('Manage user IP addresses.'))));
+
+  return $output;
+}

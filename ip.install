@@ -1,0 +1,63 @@
+<?php
+// \$Id\$
+
+/**
+ * @file
+ * IP address manager module install file.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function ip_install() {
+  drupal_install_schema('ip');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function ip_uninstall() {
+  drupal_uninstall_schema('ip');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function ip_schema() {
+  $schema['ip_tracker'] = array(
+    'description' => 'Stores IP addresses against uids.',
+    'fields' => array(
+      'uid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The User ID',
+      ),
+      'ip' => array(
+        'description' => 'IP address',
+        'type' => 'varchar',
+        'length' => 40,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'visits' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'How many visits with this uid/ip combination',
+      ),
+      'first_visit' => array(
+        'description' => 'A Unix timestamp indicating when this record was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'last_visit' => array(
+        'description' => 'A Unix timestamp indicating when this record was updated.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('uid', 'ip'),
+  );
+  return $schema;
+}
