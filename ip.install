@@ -34,11 +34,10 @@ function ip_schema() {
         'description' => 'The User ID',
       ),
       'ip' => array(
-        'description' => 'IP address',
-        'type' => 'varchar',
-        'length' => 40,
+        'type' => 'int',
+        'size' => 'big',
         'not null' => TRUE,
-        'default' => '',
+        'description' => 'The User IP address',
       ),
       'visits' => array(
         'type' => 'int',
@@ -59,5 +58,31 @@ function ip_schema() {
     ),
     'primary key' => array('uid', 'ip'),
   );
+  $schema['ip_posts'] = array(
+    'description' => 'Stores ips against nids/cids.',
+    'fields' => array(
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The sort of created item.',
+      ),
+      'id' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The Node/Comment ID',
+      ),
+      'ip' => array(
+        'type' => 'int',
+        'size' => 'big',
+        'not null' => TRUE,
+        'description' => 'The User IP address',
+      ),
+    ),
+    'primary key' => array('id', 'type'),
+  );
   return $schema;
 }
+

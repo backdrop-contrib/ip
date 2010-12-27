@@ -83,31 +83,40 @@ function ip_manage($ip) {
  */
 function ip_user($op, &$edit, &$account, $category = NULL) {
   if ($op == 'login') {
-    ip_tracker_insert($account->uid);
+    ip_tracker_user_save($account->uid);
   }
 }
 
 /**
- * Insert a record into the ip_tracker table.
+ * Save a record into the ip_tracker table.
  */
-function ip_tracker_insert($uid) {
+function ip_tracker_user_save($uid) {
   // Check to see if a row exists for this uid/ip combination.
-  $sql = "SELECT visits FROM {ip_tracker} WHERE uid = %d AND ip = '%s'";
-  $args = array($uid, ip_address());
+  $sql = "SELECT visits FROM {ip_tracker} WHERE uid = %d AND ip = %d";
+  $args = array($uid, ip2long(ip_address()));
   $visits = db_result(db_query($sql, $args));
 
   if ($visits) {
     // Update.
-    $sql = "UPDATE {ip_tracker} SET visits = %d, last_visit = %d WHERE uid = %d AND ip = '%s'";
-    $args = array($visits + 1, time(), $uid, ip_address());
+    $sql = "UPDATE {ip_tracker} SET visits = %d, last_visit = %d WHERE uid = %d AND ip = %d";
+    $args = array($visits + 1, time(), $uid, ip2long(ip_address()));
     db_query($sql, $args);
   }
   else {
     // Insert.
-    $sql = "INSERT INTO {ip_tracker} (uid, ip, visits, first_visit, last_visit) VALUES (%d, '%s', 1, %d, %d)";
-    $args = array($uid, ip_address(), time(), time());
+    $sql = "INSERT INTO {ip_tracker} (uid, ip, visits, first_visit, last_visit) VALUES (%d, %d, 1, %d, %d)";
+    $args = array($uid, ip2long(ip_address()), time(), time());
     db_query($sql, $args);
   }
+}
+
+/**
+ * Remove records in the ip_tracker table for a certain user.
+ */
+function ip_tracker_user_remove($uid) {
+  $sql = "DELETE FROM {ip_tracker} WHERE uid = %d";
+  $args = array($uid);
+  db_query($sql, $args);
 }
 
 /**
@@ -119,6 +128,7 @@ function ip_tracker_user_records($uid) {
   $result = db_query($sql, $args);
   $rows = array();
   while ($row = db_fetch_array($result)) {
+    $row['ip'] = long2ip($row['ip']);
     $rows[] = $row;
   }
   return $rows;
@@ -129,10 +139,11 @@ function ip_tracker_user_records($uid) {
  */
 function ip_tracker_ip_records($ip) {
   $sql = "SELECT * FROM {ip_tracker} WHERE ip = '%s'";
-  $args = array($ip);
+  $args = array(ip2long($ip));
   $result = db_query($sql, $args);
   $rows = array();
   while ($row = db_fetch_array($result)) {
+    $row['ip'] = long2ip($row['ip']);
     $rows[] = $row;
   }
   return $rows;
@@ -143,7 +154,7 @@ function ip_tracker_ip_records($ip) {
  */
 function ip_tracker_ip_user_count($ip) {
   $sql = "SELECT COUNT(uid) FROM {ip_tracker} WHERE ip = '%s'";
-  $args = array($ip);
+  $args = array(ip2long($ip));
   $count = db_result(db_query($sql, $args));
   return $count;
 }
@@ -243,8 +254,39 @@ function theme_ip_username($account) {
   else {
     $name = $account->name;
   }
-
   $output = l($name, 'user/' . $account->uid . '/ip', array('attributes' => array('title' => t('Manage user IP addresses.'))));
-
   return $output;
 }
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function ip_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  if ($op == 'insert') {
+    ip_posts_insert('node', $node->nid);
+  }
+}
+
+/**
+ * Implementation of hook_comment().
+ */
+function ip_comment(&$a1, $op) {
+  if ($op == 'insert') {
+    ip_posts_insert('comment', $a1['cid']);
+  }
+}
+
+/**
+ * Insert a record into the cave_tracker table.
+ */
+function ip_posts_insert($type, $id) {
+  $sql = "INSERT INTO {ip_posts} (type, id, ip) VALUES ('%s', %d, %d)";
+  $args = array($type, $id, ip2long(ip_address()));
+  db_query($sql, $args);
+}
+
+// @todo an IP address search.
+// @todo duplicate finder.
+// @todo attach our module's data to nodes/comments ?
+// @todo delete from posts table when object (node/comment) is deleted.
+// @todo something like hook_user_operations, but hook_ip_operations
