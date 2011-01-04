@@ -24,7 +24,7 @@ function ip_menu() {
     'title' => 'Manage IP addresses',
     'page callback' => 'ip_user_manage',
     'page arguments' => array(1),
-    'access arguments' => array('manage IP addresses'),
+    'access arguments' => array('manage ip addresses'),
     'type' => MENU_LOCAL_TASK,
     'description' => t("Manage a user's IP addresses."),
   );
@@ -32,7 +32,7 @@ function ip_menu() {
     'title' => 'Manage IP addresses',
     'page callback' => 'ip_manage',
     'page arguments' => array(2),
-    'access arguments' => array('manage IP addresses'),
+    'access arguments' => array('manage ip addresses'),
     'type' => MENU_LOCAL_TASK,
     'description' => t("Manage a user's IP addresses."),
   );
