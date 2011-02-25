@@ -1,4 +1,3 @@
-; $Id$
 name = IP address manager
 description = Manage user IP addresses.
 package = Other

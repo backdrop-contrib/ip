@@ -1,4 +1,3 @@
-// $Id$
 
 IP address manager README
 
