@@ -1,5 +1,4 @@
 <?php
-// \$Id\$
 
 /**
  * @file
@@ -18,6 +17,7 @@ function ip_install() {
  */
 function ip_uninstall() {
   drupal_uninstall_schema('ip');
+  variable_del('ip_backlog_nodes');
 }
 
 /**

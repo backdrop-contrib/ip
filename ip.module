@@ -1,5 +1,4 @@
 <?php
-// \$Id\$
 
 /**
  * @file
@@ -279,14 +278,89 @@ function ip_comment(&$a1, $op) {
 /**
  * Insert a record into the cave_tracker table.
  */
-function ip_posts_insert($type, $id) {
+function ip_posts_insert($type, $id, $ip_address = NULL) {
+  $ip_address = is_null($ip_address) ? ip_address() : $ip_address;
   $sql = "INSERT INTO {ip_posts} (type, id, ip) VALUES ('%s', %d, %d)";
-  $args = array($type, $id, ip2long(ip_address()));
+  $args = array($type, $id, ip2long($ip_address));
   db_query($sql, $args);
 }
+
+/**
+ * Implementation of hook_cron().
+ */
+function ip_cron() {
+  // Process backlog of nodes.
+  ip_backlog_nodes();
+  // If nodes are done, process comments.
+  if (!variable_get('ip_backlog_nodes', PHP_INT_MAX)) {
+    ip_backlog_comments();
+  }
+}
+
+/**
+ * Handle backlog of nodes.
+ */
+function ip_backlog_nodes() {
+  // This variable tracks the last wid.
+  $ip_backlog_nodes = variable_get('ip_backlog_nodes', PHP_INT_MAX);
+  if ($ip_backlog_nodes) {
+    $content_message = '@type: added %title.';
+    $result = db_query_range(
+      "SELECT wid, hostname, link" .
+      " FROM {watchdog}" .
+      " WHERE type = 'content'" .
+      " AND message = '%s'" .
+      " AND wid < " . $ip_backlog_nodes .
+      " ORDER BY wid DESC",
+      array($content_message),
+      0,
+      20
+    );
+
+    $row_count = 0;
+    while ($row = db_fetch_object($result)) {
+      $nid = str_replace(array('<a href="' . base_path() . 'node/', '">view</a>'), array('', ''), $row->link);
+      // Test the node.
+      $node = node_load($nid);
+      if (!empty($node)) {
+        ip_posts_insert('node', $nid, $row->hostname);
+      }
+      $row_count++;
+      variable_set('ip_backlog_nodes', $row->wid);
+    }
+
+    if (!$row_count) {
+      // Mark as finished.
+      variable_set('ip_backlog_nodes', 0);
+    }
+  }
+}
+
+/**
+ * Handle backlog of comments.
+ */
+function ip_backlog_comments() {
+  $result = db_query_range(
+    "SELECT c.cid AS cid, c.hostname AS hostname" .
+    " FROM {comments} c" .
+    " LEFT JOIN {ip_posts} i" .
+    " ON i.type = 'comment'" .
+    " AND (c.cid = i.id OR i.id IS NULL)" .
+    " WHERE i.id IS NULL" .
+    " ORDER BY c.cid DESC",
+   0,
+   50
+  );
+  while ($row = db_fetch_object($result)) {
+    ip_posts_insert('comment', $row->cid, $row->hostname);
+  }
+}
+
+
 
 // @todo an IP address search.
 // @todo duplicate finder.
 // @todo attach our module's data to nodes/comments ?
 // @todo delete from posts table when object (node/comment) is deleted.
 // @todo something like hook_user_operations, but hook_ip_operations
+// @todo handle deleting of comments and nodes.
