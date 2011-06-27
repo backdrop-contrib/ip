@@ -20,13 +20,13 @@ Project page: http://drupal.org/project/ip.
 INSTALLATION
 ------------
 1. Copy ip folder to modules (usually 'sites/all/modules') directory.
-2. At 'admin/build/modules' enable the IP address manager module.
+2. At 'admin/modules' enable the IP address manager module.
 
 
 CONFIGURATION
 -------------
-Enable permissions at 'admin/user/permissions'.  Users with the permission 
-'administer ip' will be able to use this module.
+Enable permissions at 'admin/people/permissions'.  Users with the permission 
+'manage ip addresses' will be able to use this module.
 
 
 USAGE

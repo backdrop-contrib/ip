@@ -6,16 +6,18 @@
  */
 
 /**
- * Implementation of hook_perm().
+ * Implements hook_permission().
  */
-function ip_perm() {
+function ip_permission() {
   return array(
-    'manage ip addresses',
+    'manage ip addresses' => array(
+      'title' => t('Manage IP addresses'),
+    ),
   );
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function ip_menu() {
   $items = array();
@@ -25,7 +27,7 @@ function ip_menu() {
     'page arguments' => array(1),
     'access arguments' => array('manage ip addresses'),
     'type' => MENU_LOCAL_TASK,
-    'description' => t("Manage a user's IP addresses."),
+    'description' => "Manage a user's IP addresses.",
   );
   $items['user/ip/%'] = array(
     'title' => 'Manage IP addresses',
@@ -33,28 +35,28 @@ function ip_menu() {
     'page arguments' => array(2),
     'access arguments' => array('manage ip addresses'),
     'type' => MENU_LOCAL_TASK,
-    'description' => t("Manage a user's IP addresses."),
+    'description' => "Manage a user's IP addresses.",
   );
   return $items;
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
-function ip_theme(&$existing) {
+function ip_theme() {
   return array(
     'ip_tracker_user_records' => array(
-      'arguments' => array(
+      'variables' => array(
         'account' => NULL,
       ),
     ),
     'ip_tracker_ip_records' => array(
-      'arguments' => array(
+      'variables' => array(
         'ip' => NULL,
       ),
     ),
     'ip_username' => array(
-      'arguments' => array(
+      'variables' => array(
         'account' => NULL,
       ),
     ),
@@ -65,7 +67,7 @@ function ip_theme(&$existing) {
  * Page callback for user IP address management.
  */
 function ip_user_manage($account) {
-  $out = theme('ip_tracker_user_records', $account);
+  $out = theme('ip_tracker_user_records', array('account' => $account));
   return $out;
 }
 
@@ -73,17 +75,15 @@ function ip_user_manage($account) {
  * Page callback for IP address management.
  */
 function ip_manage($ip) {
-  $out = theme('ip_tracker_ip_records', $ip);
+  $out = theme('ip_tracker_ip_records', array('ip' => $ip));
   return $out;
 }
 
 /**
- * Implementation of hook_user().
+ * Implements hook_user_login().
  */
-function ip_user($op, &$edit, &$account, $category = NULL) {
-  if ($op == 'login') {
-    ip_tracker_user_save($account->uid);
-  }
+function ip_user_login(&$edit, $account) {
+  ip_tracker_user_save($account->uid);
 }
 
 /**
@@ -91,21 +91,36 @@ function ip_user($op, &$edit, &$account, $category = NULL) {
  */
 function ip_tracker_user_save($uid) {
   // Check to see if a row exists for this uid/ip combination.
-  $sql = "SELECT visits FROM {ip_tracker} WHERE uid = %d AND ip = %d";
-  $args = array($uid, ip2long(ip_address()));
-  $visits = db_result(db_query($sql, $args));
+  $sql = "SELECT visits FROM {ip_tracker} WHERE uid = :uid AND ip = :ip";
+  $args = array(':uid' => $uid, ':ip' => ip2long(ip_address()));
+  $visits = db_query($sql, $args)->fetchField();
 
   if ($visits) {
     // Update.
-    $sql = "UPDATE {ip_tracker} SET visits = %d, last_visit = %d WHERE uid = %d AND ip = %d";
-    $args = array($visits + 1, time(), $uid, ip2long(ip_address()));
-    db_query($sql, $args);
+    return db_update('ip_tracker')
+      ->fields(
+        array(
+          'visits' => $visits + 1,
+          'last_visit' => REQUEST_TIME,
+        )
+      )
+      ->condition('uid', $uid)
+      ->condition('ip', ip2long(ip_address()))
+      ->execute();
   }
   else {
     // Insert.
-    $sql = "INSERT INTO {ip_tracker} (uid, ip, visits, first_visit, last_visit) VALUES (%d, %d, 1, %d, %d)";
-    $args = array($uid, ip2long(ip_address()), time(), time());
-    db_query($sql, $args);
+    return db_insert('ip_tracker')
+      ->fields(
+        array(
+          'uid' => $uid,
+          'ip' => ip2long(ip_address()),
+          'visits' => 1,
+          'first_visit' => REQUEST_TIME,
+          'last_visit' => REQUEST_TIME,
+        )
+      )
+      ->execute();
   }
 }
 
@@ -113,21 +128,21 @@ function ip_tracker_user_save($uid) {
  * Remove records in the ip_tracker table for a certain user.
  */
 function ip_tracker_user_remove($uid) {
-  $sql = "DELETE FROM {ip_tracker} WHERE uid = %d";
-  $args = array($uid);
-  db_query($sql, $args);
+  return db_delete('ip_tracker')
+    ->condition('uid', $uid)
+    ->execute();
 }
 
 /**
  * Get the records from the tracker for a user.
  */
 function ip_tracker_user_records($uid) {
-  $sql = "SELECT * FROM {ip_tracker} WHERE uid = %d";
-  $args = array($uid);
+  $sql = "SELECT * FROM {ip_tracker} WHERE uid = :uid";
+  $args = array(':uid' => $uid);
   $result = db_query($sql, $args);
   $rows = array();
-  while ($row = db_fetch_array($result)) {
-    $row['ip'] = long2ip($row['ip']);
+  foreach ($result as $row) {
+    $row->ip = long2ip($row->ip);
     $rows[] = $row;
   }
   return $rows;
@@ -137,12 +152,12 @@ function ip_tracker_user_records($uid) {
  * Get the records from the tracker for an IP.
  */
 function ip_tracker_ip_records($ip) {
-  $sql = "SELECT * FROM {ip_tracker} WHERE ip = '%s'";
-  $args = array(ip2long($ip));
+  $sql = "SELECT * FROM {ip_tracker} WHERE ip = :ip";
+  $args = array(':ip' => ip2long($ip));
   $result = db_query($sql, $args);
   $rows = array();
-  while ($row = db_fetch_array($result)) {
-    $row['ip'] = long2ip($row['ip']);
+  foreach ($result as $row) {
+    $row->ip = long2ip($row->ip);
     $rows[] = $row;
   }
   return $rows;
@@ -152,61 +167,66 @@ function ip_tracker_ip_records($ip) {
  * Count how many users have been tracked against an IP.
  */
 function ip_tracker_ip_user_count($ip) {
-  $sql = "SELECT COUNT(uid) FROM {ip_tracker} WHERE ip = '%s'";
-  $args = array(ip2long($ip));
-  $count = db_result(db_query($sql, $args));
+  $sql = "SELECT COUNT(uid) FROM {ip_tracker} WHERE ip = :ip";
+  $args = array(':ip' => ip2long($ip));
+  $count = db_query($sql, $args)->fetchField();
   return $count;
 }
 
 /**
  * Theme the IP tracker records for a user.
  */
-function theme_ip_tracker_user_records($account) {
+function theme_ip_tracker_user_records($variables) {
+  $account = &$variables['account'];
   // Set the page title.
   drupal_set_title(
     t(
-      'Manage IP addresses for %user',
-      array('%user' => $account->name)
+      'Manage IP addresses for @user',
+      array('@user' => $account->name)
     )
   );
+  $out = '';
   // Get the record data.
   $records = ip_tracker_user_records($account->uid);
-  // Create a table header.
-  $header = array(
-    t('IP address'),
-    t('Visits'),
-    t('First visit'),
-    t('Last visit'),
-    t('User count'),
-  );
-  foreach ($records as $record) {
-    // Count the users tracked using this IP.
-    $count = ip_tracker_ip_user_count($record['ip']);
-    if ($count > 1) {
-      // There are multiple users recorded with this IP - link to the IP page.
-      $count_field = l(t('!count users', array('!count' => $count)), 'user/ip/'. $record['ip']);
-    }
-    else {
-      // There is only this user recorded with this IP.
-      $count_field = t('1 user');
-    }
-    // Build a table row.
-    $rows[] = array(
-      l($record['ip'], 'user/ip/'. $record['ip']),
-      $record['visits'],
-      format_date($record['first_visit']),
-      format_date($record['last_visit']),
-      $count_field,
+  if (!empty($records)) {
+    // Create a table header.
+    $header = array(
+      t('IP address'),
+      t('Visits'),
+      t('First visit'),
+      t('Last visit'),
+      t('User count'),
     );
+    foreach ($records as $record) {
+      // Count the users tracked using this IP.
+      $count = ip_tracker_ip_user_count($record->ip);
+      if ($count > 1) {
+        // There are multiple users recorded with this IP - link to the IP page.
+        $count_field = l(t('!count users', array('!count' => $count)), 'user/ip/' . $record->ip);
+      }
+      else {
+        // There is only this user recorded with this IP.
+        $count_field = t('1 user');
+      }
+      // Build a table row.
+      $rows[] = array(
+        l($record->ip, 'user/ip/' . $record->ip),
+        $record->visits,
+        format_date($record->first_visit),
+        format_date($record->last_visit),
+        $count_field,
+      );
+    }
+    $out = theme('table', array('header' => $header, 'rows' => $rows));
   }
-  $out = theme('table', $header, $rows);
   return $out;
 }
 
 /**
  * Theme the IP tracker records for an IP.
  */
-function theme_ip_tracker_ip_records($ip) {
+function theme_ip_tracker_ip_records($variables) {
+  $ip = &$variables['ip'];
   // Set the page title.
   drupal_set_title(
     t(
@@ -224,19 +244,19 @@ function theme_ip_tracker_ip_records($ip) {
     t('Last visit'),
   );
   foreach ($records as $record) {
-    $account = user_load($record['uid']);
+    $account = user_load($record->uid);
     // Check that account is loaded.
     if ($account) {
       // Build a table row.
       $rows[] = array(
-        theme('ip_username', $account),
-        $record['visits'],
-        format_date($record['first_visit']),
-        format_date($record['last_visit']),
+        theme('ip_username', array('account' => $account)),
+        $record->visits,
+        format_date($record->first_visit),
+        format_date($record->last_visit),
       );
     }
   }
-  $out = theme('table', $header, $rows);
+  $out = theme('table', array('header' => $header, 'rows' => $rows));
   return $out;
 }
 
@@ -245,7 +265,8 @@ function theme_ip_tracker_ip_records($ip) {
  *
  * A modified version of theme_username().
  */
-function theme_ip_username($account) {
+function theme_ip_username($variables) {
+  $account = &$variables['account'];
   // Shorten the name when it is too long or it will break many tables.
   if (drupal_strlen($account->name) > 20) {
     $name = drupal_substr($account->name, 0, 15) . '...';
@@ -258,21 +279,17 @@ function theme_ip_username($account) {
 }
 
 /**
- * Implementation of hook_nodeapi().
+ * Implements hook_node_insert().
  */
-function ip_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
-  if ($op == 'insert') {
-    ip_posts_insert('node', $node->nid);
-  }
+function ip_node_insert($node) {
+  ip_posts_insert('node', $node->nid);
 }
 
 /**
- * Implementation of hook_comment().
+ * Implements hook_comment_insert().
  */
-function ip_comment(&$a1, $op) {
-  if ($op == 'insert') {
-    ip_posts_insert('comment', $a1['cid']);
-  }
+function ip_comment_insert($comment) {
+  ip_posts_insert('comment', $comment->cid);
 }
 
 /**
@@ -280,13 +297,19 @@ function ip_comment(&$a1, $op) {
  */
 function ip_posts_insert($type, $id, $ip_address = NULL) {
   $ip_address = is_null($ip_address) ? ip_address() : $ip_address;
-  $sql = "INSERT INTO {ip_posts} (type, id, ip) VALUES ('%s', %d, %d)";
-  $args = array($type, $id, ip2long($ip_address));
-  db_query($sql, $args);
+  return db_insert('ip_posts')
+    ->fields(
+      array(
+        'type' => $type,
+        'id' => $id,
+        'ip' => ip2long($ip_address),
+      )
+    )
+    ->execute();
 }
 
 /**
- * Implementation of hook_cron().
+ * Implements hook_cron().
  */
 function ip_cron() {
   // Process backlog of nodes.
@@ -304,21 +327,20 @@ function ip_backlog_nodes() {
   // This variable tracks the last wid.
   $ip_backlog_nodes = variable_get('ip_backlog_nodes', PHP_INT_MAX);
   if ($ip_backlog_nodes) {
-    $content_message = '@type: added %title.';
     $result = db_query_range(
       "SELECT wid, hostname, link" .
       " FROM {watchdog}" .
       " WHERE type = 'content'" .
-      " AND message = '%s'" .
+      " AND message = :msg" .
       " AND wid < " . $ip_backlog_nodes .
       " ORDER BY wid DESC",
-      array($content_message),
       0,
-      20
+      20,
+      array(':msg' => '@type: added %title.')
     );
 
     $row_count = 0;
-    while ($row = db_fetch_object($result)) {
+    foreach ($result as $row) {
       $nid = str_replace(array('<a href="' . base_path() . 'node/', '">view</a>'), array('', ''), $row->link);
       // Test the node.
       $node = node_load($nid);
@@ -342,20 +364,19 @@ function ip_backlog_nodes() {
 function ip_backlog_comments() {
   $result = db_query_range(
     "SELECT c.cid AS cid, c.hostname AS hostname" .
-    " FROM {comments} c" .
+    " FROM {comment} c" .
     " LEFT JOIN {ip_posts} i" .
     " ON i.type = 'comment'" .
     " AND (c.cid = i.id OR i.id IS NULL)" .
     " WHERE i.id IS NULL" .
     " ORDER BY c.cid DESC",
-   0,
-   50
+    0,
+    50
   );
-  while ($row = db_fetch_object($result)) {
+  foreach ($result as $row) {
     ip_posts_insert('comment', $row->cid, $row->hostname);
   }
 }
-
 
 
 // @todo an IP address search.
