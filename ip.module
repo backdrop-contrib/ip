@@ -55,11 +55,6 @@ function ip_theme() {
         'ip' => NULL,
       ),
     ),
-    'ip_username' => array(
-      'variables' => array(
-        'account' => NULL,
-      ),
-    ),
   );
 }
 
@@ -249,7 +244,7 @@ function theme_ip_tracker_ip_records($variables) {
     if ($account) {
       // Build a table row.
       $rows[] = array(
-        theme('ip_username', array('account' => $account)),
+        format_username($account),
         $record->visits,
         format_date($record->first_visit),
         format_date($record->last_visit),
@@ -258,24 +253,6 @@ function theme_ip_tracker_ip_records($variables) {
   }
   $out = theme('table', array('header' => $header, 'rows' => $rows));
   return $out;
-}
-
-/**
- * Theme a username for display in the IP tracker.
- *
- * A modified version of theme_username().
- */
-function theme_ip_username($variables) {
-  $account = &$variables['account'];
-  // Shorten the name when it is too long or it will break many tables.
-  if (drupal_strlen($account->name) > 20) {
-    $name = drupal_substr($account->name, 0, 15) . '...';
-  }
-  else {
-    $name = $account->name;
-  }
-  $output = l($name, 'user/' . $account->uid . '/ip', array('attributes' => array('title' => t('Manage user IP addresses.'))));
-  return $output;
 }
 
 /**
@@ -332,11 +309,14 @@ function ip_backlog_nodes() {
       " FROM {watchdog}" .
       " WHERE type = 'content'" .
       " AND message = :msg" .
-      " AND wid < " . $ip_backlog_nodes .
+      " AND wid < :backlog_nodes"
       " ORDER BY wid DESC",
       0,
       20,
-      array(':msg' => '@type: added %title.')
+      array(
+        ':msg' => '@type: added %title.',
+        ':backlog_nodes' => $ip_backlog_nodes,
+      )
     );
 
     $row_count = 0;
