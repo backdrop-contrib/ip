@@ -20,7 +20,7 @@ Project page: http://drupal.org/project/ip.
 INSTALLATION
 ------------
 1. Copy ip folder to modules (usually 'sites/all/modules') directory.
-2. At 'admin/modules' enable the IP address manager module.
+2. At the 'admin/modules' page, enable the IP address manager module.
 
 
 CONFIGURATION
