@@ -17,6 +17,13 @@ function ip_permission() {
 }
 
 /**
+ * Callback for menu user ip access.
+ */ 
+function ip_menu_access($arg) {
+  return !empty($arg) && user_access('manage ip addresses');
+}
+
+/**
  * Implements hook_menu().
  */
 function ip_menu() {
@@ -25,15 +32,24 @@ function ip_menu() {
     'title' => 'Manage IP addresses',
     'page callback' => 'ip_user_manage',
     'page arguments' => array(1),
-    'access arguments' => array('manage ip addresses'),
+    'access callback' => 'ip_menu_access',
+    'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
+    'description' => "Manage a user's IP addresses.",
+  );
+  $items['user/ip'] = array(
+    'title' => 'Manage IP addresses',
+    'page callback' => 'ip_manage',
+    'access arguments' => array('manage ip addresses'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
     'description' => "Manage a user's IP addresses.",
   );
   $items['user/ip/%'] = array(
     'title' => 'Manage IP addresses',
     'page callback' => 'ip_manage',
     'page arguments' => array(2),
-    'access arguments' => array('manage ip addresses'),
+    'access callback' => 'ip_menu_access',
+    'access arguments' => array(2),
     'type' => MENU_LOCAL_TASK,
     'description' => "Manage a user's IP addresses.",
   );
