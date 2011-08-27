@@ -18,7 +18,7 @@ function ip_permission() {
 
 /**
  * Callback for menu user ip access.
- */ 
+ */
 function ip_menu_access($arg) {
   return !empty($arg) && user_access('manage ip addresses');
 }
@@ -325,7 +325,7 @@ function ip_backlog_nodes() {
       " FROM {watchdog}" .
       " WHERE type = 'content'" .
       " AND message = :msg" .
-      " AND wid < :backlog_nodes"
+      " AND wid < :backlog_nodes" .
       " ORDER BY wid DESC",
       0,
       20,
