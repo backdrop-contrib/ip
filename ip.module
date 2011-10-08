@@ -37,21 +37,25 @@ function ip_menu() {
     'type' => MENU_LOCAL_TASK,
     'description' => "Manage a user's IP addresses.",
   );
-  $items['user/ip'] = array(
+  /*
+  // This page hasn't been made yet, but it should be a list of IP addresses.
+
+  $items['admin/people/ip'] = array(
     'title' => 'Manage IP addresses',
     'page callback' => 'ip_manage',
     'access arguments' => array('manage ip addresses'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'description' => "Manage a user's IP addresses.",
+    'type' => MENU_LOCAL_TASK,
+    'description' => "Manage all IP addresses.",
   );
-  $items['user/ip/%'] = array(
+  */
+  $items['admin/people/ip/%'] = array(
     'title' => 'Manage IP addresses',
     'page callback' => 'ip_manage',
-    'page arguments' => array(2),
+    'page arguments' => array(3),
     'access callback' => 'ip_menu_access',
-    'access arguments' => array(2),
-    'type' => MENU_LOCAL_TASK,
-    'description' => "Manage a user's IP addresses.",
+    'access arguments' => array(3),
+    'type' => MENU_CALLBACK,
+    'description' => "Manage IP addresses.",
   );
   return $items;
 }
@@ -85,7 +89,7 @@ function ip_user_manage($account) {
 /**
  * Page callback for IP address management.
  */
-function ip_manage($ip) {
+function ip_manage($ip = NULL) {
   $out = theme('ip_tracker_ip_records', array('ip' => $ip));
   return $out;
 }
@@ -163,8 +167,12 @@ function ip_tracker_user_records($uid) {
  * Get the records from the tracker for an IP.
  */
 function ip_tracker_ip_records($ip) {
-  $sql = "SELECT * FROM {ip_tracker} WHERE ip = :ip";
-  $args = array(':ip' => ip2long($ip));
+  $sql = "SELECT * FROM {ip_tracker}";
+  $args = array();
+  if (!empty($ip)) {
+    $sql .= " WHERE ip = :ip";
+    $args[':ip'] = ip2long($ip);
+  }
   $result = db_query($sql, $args);
   $rows = array();
   foreach ($result as $row) {
@@ -193,7 +201,7 @@ function theme_ip_tracker_user_records($variables) {
   drupal_set_title(
     t(
       'Manage IP addresses for @user',
-      array('@user' => $account->name)
+      array('@user' => format_username($account))
     )
   );
   $out = '';
@@ -213,7 +221,7 @@ function theme_ip_tracker_user_records($variables) {
       $count = ip_tracker_ip_user_count($record->ip);
       if ($count > 1) {
         // There are multiple users recorded with this IP - link to the IP page.
-        $count_field = l(t('!count users', array('!count' => $count)), 'user/ip/' . $record->ip);
+        $count_field = l(t('!count users', array('!count' => $count)), 'admin/people/ip/' . $record->ip);
       }
       else {
         // There is only this user recorded with this IP.
@@ -221,7 +229,7 @@ function theme_ip_tracker_user_records($variables) {
       }
       // Build a table row.
       $rows[] = array(
-        l($record->ip, 'user/ip/' . $record->ip),
+        l($record->ip, 'admin/people/ip/' . $record->ip),
         $record->visits,
         format_date($record->first_visit),
         format_date($record->last_visit),
@@ -238,36 +246,39 @@ function theme_ip_tracker_user_records($variables) {
  */
 function theme_ip_tracker_ip_records($variables) {
   $ip = &$variables['ip'];
-  // Set the page title.
-  drupal_set_title(
-    t(
-      'Manage IP address %ip',
-      array('%ip' => $ip)
-    )
-  );
-  // Get the record data.
-  $records = ip_tracker_ip_records($ip);
-  // Create a table header.
-  $header = array(
-    t('User'),
-    t('Visits'),
-    t('First visit'),
-    t('Last visit'),
-  );
-  foreach ($records as $record) {
-    $account = user_load($record->uid);
-    // Check that account is loaded.
-    if ($account) {
-      // Build a table row.
-      $rows[] = array(
-        format_username($account),
-        $record->visits,
-        format_date($record->first_visit),
-        format_date($record->last_visit),
-      );
+  if (!empty($ip)) {
+    // Set the page title.
+    drupal_set_title(
+      t(
+        'Manage IP address @ip',
+        array('@ip' => $ip)
+      )
+    );
+    // Get the record data.
+    $records = ip_tracker_ip_records($ip);
+    // Create a table header.
+    $header = array(
+      t('User'),
+      t('Visits'),
+      t('First visit'),
+      t('Last visit'),
+    );
+    $rows = array();
+    foreach ($records as $record) {
+      $account = user_load($record->uid);
+      // Check that account is loaded.
+      if ($account) {
+        // Build a table row.
+        $rows[] = array(
+          format_username($account),
+          $record->visits,
+          format_date($record->first_visit),
+          format_date($record->last_visit),
+        );
+      }
     }
+    $out = theme('table', array('header' => $header, 'rows' => $rows));
   }
-  $out = theme('table', array('header' => $header, 'rows' => $rows));
   return $out;
 }
 
