@@ -102,9 +102,21 @@ function ip_user_login(&$edit, $account) {
 }
 
 /**
+ * Implements hook_user_insert().
+ */
+function ip_user_insert(&$edit, $account) {
+  ip_tracker_user_save($account->uid);
+}
+
+/**
  * Save a record into the ip_tracker table.
  */
 function ip_tracker_user_save($uid) {
+  global $user;
+  if ($user->uid != $uid) {
+    // Not the current user, so this could save false info, abort.
+    return;
+  }
   // Check to see if a row exists for this uid/ip combination.
   $sql = "SELECT visits FROM {ip_tracker} WHERE uid = :uid AND ip = :ip";
   $args = array(':uid' => $uid, ':ip' => ip2long(ip_address()));
