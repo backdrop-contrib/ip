@@ -17,84 +17,6 @@ function ip_permission() {
 }
 
 /**
- * Callback for menu user ip access.
- */
-function ip_menu_access($arg) {
-  return !empty($arg) && user_access('manage ip addresses');
-}
-
-/**
- * Implements hook_menu().
- */
-function ip_menu() {
-  $items = array();
-  $items['user/%user/ip'] = array(
-    'title' => 'Manage IP addresses',
-    'page callback' => 'ip_user_manage',
-    'page arguments' => array(1),
-    'access callback' => 'ip_menu_access',
-    'access arguments' => array(1),
-    'type' => MENU_LOCAL_TASK,
-    'description' => "Manage a user's IP addresses.",
-  );
-  /*
-  // This page hasn't been made yet, but it should be a list of IP addresses.
-
-  $items['admin/people/ip'] = array(
-    'title' => 'Manage IP addresses',
-    'page callback' => 'ip_manage',
-    'access arguments' => array('manage ip addresses'),
-    'type' => MENU_LOCAL_TASK,
-    'description' => "Manage all IP addresses.",
-  );
-  */
-  $items['admin/people/ip/%'] = array(
-    'title' => 'Manage IP addresses',
-    'page callback' => 'ip_manage',
-    'page arguments' => array(3),
-    'access callback' => 'ip_menu_access',
-    'access arguments' => array(3),
-    'type' => MENU_CALLBACK,
-    'description' => "Manage IP addresses.",
-  );
-  return $items;
-}
-
-/**
- * Implements hook_theme().
- */
-function ip_theme() {
-  return array(
-    'ip_tracker_user_records' => array(
-      'variables' => array(
-        'account' => NULL,
-      ),
-    ),
-    'ip_tracker_ip_records' => array(
-      'variables' => array(
-        'ip' => NULL,
-      ),
-    ),
-  );
-}
-
-/**
- * Page callback for user IP address management.
- */
-function ip_user_manage($account) {
-  $out = theme('ip_tracker_user_records', array('account' => $account));
-  return $out;
-}
-
-/**
- * Page callback for IP address management.
- */
-function ip_manage($ip = NULL) {
-  $out = theme('ip_tracker_ip_records', array('ip' => $ip));
-  return $out;
-}
-
-/**
  * Implements hook_user_login().
  */
 function ip_user_login(&$edit, $account) {
@@ -205,96 +127,6 @@ function ip_tracker_ip_user_count($ip) {
 }
 
 /**
- * Theme the IP tracker records for a user.
- */
-function theme_ip_tracker_user_records($variables) {
-  $account = &$variables['account'];
-  // Set the page title.
-  drupal_set_title(
-    t(
-      'Manage IP addresses for @user',
-      array('@user' => format_username($account))
-    )
-  );
-  $out = '';
-  // Get the record data.
-  $records = ip_tracker_user_records($account->uid);
-  if (!empty($records)) {
-    // Create a table header.
-    $header = array(
-      t('IP address'),
-      t('Visits'),
-      t('First visit'),
-      t('Last visit'),
-      t('User count'),
-    );
-    foreach ($records as $record) {
-      // Count the users tracked using this IP.
-      $count = ip_tracker_ip_user_count($record->ip);
-      if ($count > 1) {
-        // There are multiple users recorded with this IP - link to the IP page.
-        $count_field = l(t('!count users', array('!count' => $count)), 'admin/people/ip/' . $record->ip);
-      }
-      else {
-        // There is only this user recorded with this IP.
-        $count_field = t('1 user');
-      }
-      // Build a table row.
-      $rows[] = array(
-        l($record->ip, 'admin/people/ip/' . $record->ip),
-        $record->visits,
-        format_date($record->first_visit),
-        format_date($record->last_visit),
-        $count_field,
-      );
-    }
-    $out = theme('table', array('header' => $header, 'rows' => $rows));
-  }
-  return $out;
-}
-
-/**
- * Theme the IP tracker records for an IP.
- */
-function theme_ip_tracker_ip_records($variables) {
-  $ip = &$variables['ip'];
-  if (!empty($ip)) {
-    // Set the page title.
-    drupal_set_title(
-      t(
-        'Manage IP address @ip',
-        array('@ip' => $ip)
-      )
-    );
-    // Get the record data.
-    $records = ip_tracker_ip_records($ip);
-    // Create a table header.
-    $header = array(
-      t('User'),
-      t('Visits'),
-      t('First visit'),
-      t('Last visit'),
-    );
-    $rows = array();
-    foreach ($records as $record) {
-      $account = user_load($record->uid);
-      // Check that account is loaded.
-      if ($account) {
-        // Build a table row.
-        $rows[] = array(
-          format_username($account),
-          $record->visits,
-          format_date($record->first_visit),
-          format_date($record->last_visit),
-        );
-      }
-    }
-    $out = theme('table', array('header' => $header, 'rows' => $rows));
-  }
-  return $out;
-}
-
-/**
  * Implements hook_node_insert().
  */
 function ip_node_insert($node) {
@@ -399,8 +231,16 @@ function ip_backlog_comments() {
   }
 }
 
+/**
+ * Implements hook_views_api()
+ */
+function ip_views_api() {
+  return array(
+    'api'  => views_api_version(),
+    'path' => drupal_get_path('module', 'ip') . '/views',
+  );
+}
 
-// @todo an IP address search.
 // @todo duplicate finder.
 // @todo attach our module's data to nodes/comments ?
 // @todo delete from posts table when object (node/comment) is deleted.

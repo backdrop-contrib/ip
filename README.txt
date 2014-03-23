@@ -3,7 +3,6 @@ IP address manager README
 
 CONTENTS OF THIS FILE
 ----------------------
-
   * Introduction
   * Installation
   * Configuration
@@ -12,8 +11,6 @@ CONTENTS OF THIS FILE
 
 INTRODUCTION
 ------------
-Maintainer: Daniel Braksator (http://drupal.org/user/134005)
-
 Project page: http://drupal.org/project/ip.
 
 
