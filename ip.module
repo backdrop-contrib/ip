@@ -381,19 +381,21 @@ function ip_backlog_nodes() {
  * Handle backlog of comments.
  */
 function ip_backlog_comments() {
-  $result = db_query_range(
-    "SELECT c.cid AS cid, c.hostname AS hostname" .
-    " FROM {comment} c" .
-    " LEFT JOIN {ip_posts} i" .
-    " ON i.type = 'comment'" .
-    " AND (c.cid = i.id OR i.id IS NULL)" .
-    " WHERE i.id IS NULL" .
-    " ORDER BY c.cid DESC",
-    0,
-    50
-  );
-  foreach ($result as $row) {
-    ip_posts_insert('comment', $row->cid, $row->hostname);
+  if (module_exists('comment')) {
+    $result = db_query_range(
+      "SELECT c.cid AS cid, c.hostname AS hostname" .
+      " FROM {comment} c" .
+      " LEFT JOIN {ip_posts} i" .
+      " ON i.type = 'comment'" .
+      " AND (c.cid = i.id OR i.id IS NULL)" .
+      " WHERE i.id IS NULL" .
+      " ORDER BY c.cid DESC",
+      0,
+      50
+    );
+    foreach ($result as $row) {
+      ip_posts_insert('comment', $row->cid, $row->hostname);
+    }
   }
 }
 
