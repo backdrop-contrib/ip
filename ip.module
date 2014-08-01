@@ -39,37 +39,41 @@ function ip_user_insert(&$edit, $account) {
  * @NOTE: Maybe you want to check the user uid vs $uid before calling this function.
  */
 function ip_tracker_user_save($uid) {
-  // Check to see if a row exists for this uid/ip combination.
-  $sql = "SELECT visits FROM {ip_tracker} WHERE uid = :uid AND ip = :ip";
-  $args = array(':uid' => $uid, ':ip' => ip2long(ip_address()));
-  $visits = db_query($sql, $args)->fetchField();
+  $iplong = ip2long(ip_address());
 
-  if ($visits) {
-    // Update.
-    return db_update('ip_tracker')
-      ->fields(
-        array(
-          'visits' => $visits + 1,
-          'last_visit' => REQUEST_TIME,
+  if (!empty($iplong)) {
+    // Check to see if a row exists for this uid/ip combination.
+    $sql = "SELECT visits FROM {ip_tracker} WHERE uid = :uid AND ip = :ip";
+    $args = array(':uid' => $uid, ':ip' => $iplong);
+    $visits = db_query($sql, $args)->fetchField();
+
+    if ($visits) {
+      // Update.
+      return db_update('ip_tracker')
+        ->fields(
+          array(
+            'visits' => $visits + 1,
+            'last_visit' => REQUEST_TIME,
+          )
         )
-      )
-      ->condition('uid', $uid)
-      ->condition('ip', ip2long(ip_address()))
-      ->execute();
-  }
-  else {
-    // Insert.
-    return db_insert('ip_tracker')
-      ->fields(
-        array(
-          'uid' => $uid,
-          'ip' => ip2long(ip_address()),
-          'visits' => 1,
-          'first_visit' => REQUEST_TIME,
-          'last_visit' => REQUEST_TIME,
+        ->condition('uid', $uid)
+        ->condition('ip', $iplong)
+        ->execute();
+    }
+    else {
+      // Insert.
+      return db_insert('ip_tracker')
+        ->fields(
+          array(
+            'uid' => $uid,
+            'ip' => $iplong,
+            'visits' => 1,
+            'first_visit' => REQUEST_TIME,
+            'last_visit' => REQUEST_TIME,
+          )
         )
-      )
-      ->execute();
+        ->execute();
+    }
   }
 }
 
@@ -145,15 +149,18 @@ function ip_comment_insert($comment) {
  */
 function ip_posts_insert($type, $id, $ip_address = NULL) {
   $ip_address = is_null($ip_address) ? ip_address() : $ip_address;
-  return db_insert('ip_posts')
-    ->fields(
-      array(
-        'type' => $type,
-        'id' => $id,
-        'ip' => ip2long($ip_address),
+  $iplong = ip2long($ip_address);
+  if (!empty($iplong)) {
+    return db_insert('ip_posts')
+      ->fields(
+        array(
+          'type' => $type,
+          'id' => $id,
+          'ip' => $iplong,
+        )
       )
-    )
-    ->execute();
+      ->execute();
+  }
 }
 
 /**
