@@ -145,7 +145,7 @@ function ip_comment_insert($comment) {
 }
 
 /**
- * Insert a record into the cave_tracker table.
+ * Insert a record into the ip_posts table.
  */
 function ip_posts_insert($type, $id, $ip_address = NULL) {
   $ip_address = is_null($ip_address) ? ip_address() : $ip_address;
@@ -164,56 +164,16 @@ function ip_posts_insert($type, $id, $ip_address = NULL) {
 }
 
 /**
- * Implements hook_cron().
+ * Loads a record into the ip_posts table.
  */
-function ip_cron() {
-  // Process backlog of nodes.
-  ip_backlog_nodes();
-  // If nodes are done, process comments.
-  if (!variable_get('ip_backlog_nodes', PHP_INT_MAX)) {
-    ip_backlog_comments();
-  }
-}
-
-/**
- * Handle backlog of nodes.
- */
-function ip_backlog_nodes() {
-  // This variable tracks the last wid.
-  $ip_backlog_nodes = variable_get('ip_backlog_nodes', PHP_INT_MAX);
-  if ($ip_backlog_nodes) {
-    $result = db_query_range(
-      "SELECT wid, hostname, link" .
-      " FROM {watchdog}" .
-      " WHERE type = 'content'" .
-      " AND message = :msg" .
-      " AND wid < :backlog_nodes" .
-      " ORDER BY wid DESC",
-      0,
-      20,
+function ip_posts_load($type, $id) {
+  return db_query('SELECT * FROM {ip_posts} WHERE type = :type AND id = :id',
       array(
-        ':msg' => '@type: added %title.',
-        ':backlog_nodes' => $ip_backlog_nodes,
+        'type' => $type,
+        'id' => $id,
       )
-    );
-
-    $row_count = 0;
-    foreach ($result as $row) {
-      $nid = str_replace(array('<a href="' . base_path() . 'node/', '">view</a>'), array('', ''), $row->link);
-      // Test the node.
-      $node = node_load($nid);
-      if (!empty($node)) {
-        ip_posts_insert('node', $nid, $row->hostname);
-      }
-      $row_count++;
-      variable_set('ip_backlog_nodes', $row->wid);
-    }
-
-    if (!$row_count) {
-      // Mark as finished.
-      variable_set('ip_backlog_nodes', 0);
-    }
-  }
+    )
+    ->fetch();
 }
 
 /**
