@@ -8,7 +8,7 @@
 /**
  * A handler to provide proper displays IP Long values
  */
-class ip_views_handler_field_user_count extends views_handler_field {
+class IpUserCountField extends views_handler_field {
 
   function query() {
     // @TODO: do ip_tracker_ip_user_count() as a subquery!

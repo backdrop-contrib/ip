@@ -204,7 +204,6 @@ function ip_backlog_comments() {
 function ip_views_api() {
   return array(
     'api'  => views_api_version(),
-    'path' => drupal_get_path('module', 'ip') . '/views',
   );
 }
 
