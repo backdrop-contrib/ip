@@ -11,7 +11,7 @@
 function ip_drush_command() {
 
   $items['ip-backlog-comments'] = array(
-    'description' => 'Insert comments IP address data prior to module instalation in IP Post table taken from comments table.',
+    'description' => 'Insert comments IP address data loaded prior to module instalation in IP Post table taken from comments table.',
     'aliases' => array('ip-bc'),
     'options' => array(
       'size' => array(
@@ -22,7 +22,7 @@ function ip_drush_command() {
   );
 
   $items['ip-backlog-nodes'] = array(
-    'description' => 'Insert nodes address data prior to module instalation in IP Post table from taken watchdog table (dblog).',
+    'description' => 'Insert nodes IP address data loaded prior to module instalation in IP Post table from taken watchdog table (dblog).',
     'aliases' => array('ip-bn'),
     'options' => array(
       'size' => array(
