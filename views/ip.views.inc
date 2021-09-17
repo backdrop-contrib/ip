@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Provides ip_tracker view fields and filters.
@@ -15,8 +14,8 @@ function ip_views_data() {
   $data['ip_tracker']['table']['group'] = t('IP Tracker (user)');
   $data['ip_tracker']['table']['base'] = array(
     'field' => 'uid',
-    'title' => t('IP Tracker (user) table.'),
-    'help' => t('IP Tracker (user) table.'),
+    'title' => t('IP Tracker (user)'),
+    'help' => t('IP Tracker (user)'),
     'weight' => -10,
   );
 
@@ -120,14 +119,14 @@ function ip_views_data() {
       'click sortable' => FALSE,
     ),
   );
-  
+
 
   // Table: IP Posts:
   $data['ip_posts']['table']['group'] = t('IP Posts');
   $data['ip_posts']['table']['base'] = array(
     'field' => 'type',
-    'title' => t('IP Posts (entity) table.'),
-    'help' => t('IP Posts (entity) table.'),
+    'title' => t('IP Posts (entity)'),
+    'help' => t('IP Posts (entity)'),
     'weight' => -10,
   );
 

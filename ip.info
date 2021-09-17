@@ -1,10 +1,4 @@
-name = IP address manager
+name = IP Address Manager
 description = Manage user IP addresses.
-core = 7.x
-
-dependencies[] = views
-
-files[] = src/Plugin/views/argument/Ip2LongArguemnt.php
-files[] = src/Plugin/views/field/Long2IpField.php
-files[] = src/Plugin/views/field/IpUserCountField.php
-files[] = src/Plugin/views/filter/Ip2LongFilter.php
+backdrop = 1.x
+type = module

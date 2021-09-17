@@ -1,16 +1,8 @@
 <?php
-
 /**
  * @file
  * IP address manager module install file.
  */
-
-/**
- * Implements hook_uninstall().
- */
-function ip_uninstall() {
-  variable_del('ip_backlog_nodes');
-}
 
 /**
  * Implements hook_schema().
@@ -77,4 +69,3 @@ function ip_schema() {
   );
   return $schema;
 }
-

@@ -1,8 +1,7 @@
 <?php
-
 /**
  * @file
- * IP address manager module.
+ * IP Address Manager module.
  */
 
 /**
@@ -26,7 +25,7 @@ function ip_user_login(&$edit, $account) {
 /**
  * Implements hook_user_insert().
  */
-function ip_user_insert(&$edit, $account) {
+function ip_user_insert($account) {
   global $user;
   // Track anonymous registration (Do not track administration account creation).
   if (empty($user->uid) || $user->uid == $account->uid) {
@@ -41,10 +40,18 @@ function ip_user_insert(&$edit, $account) {
 function ip_tracker_user_save($uid) {
   $iplong = ip2long(ip_address());
 
+  // DEBUGGING on local dev system
+//   if (ip_address() == '::1') {
+//     $iplong = 1;
+//   }
+
   if (!empty($iplong)) {
     // Check to see if a row exists for this uid/ip combination.
     $sql = "SELECT visits FROM {ip_tracker} WHERE uid = :uid AND ip = :ip";
-    $args = array(':uid' => $uid, ':ip' => $iplong);
+    $args = array(
+      ':uid' => $uid,
+      ':ip' => $iplong,
+    );
     $visits = db_query($sql, $args)->fetchField();
 
     if ($visits) {
@@ -52,9 +59,9 @@ function ip_tracker_user_save($uid) {
       return db_update('ip_tracker')
         ->fields(
           array(
-            'visits' => $visits + 1,
-            'last_visit' => REQUEST_TIME,
-          )
+        'visits' => $visits + 1,
+        'last_visit' => REQUEST_TIME,
+      )
         )
         ->condition('uid', $uid)
         ->condition('ip', $iplong)
@@ -65,12 +72,12 @@ function ip_tracker_user_save($uid) {
       return db_insert('ip_tracker')
         ->fields(
           array(
-            'uid' => $uid,
-            'ip' => $iplong,
-            'visits' => 1,
-            'first_visit' => REQUEST_TIME,
-            'last_visit' => REQUEST_TIME,
-          )
+        'uid' => $uid,
+        'ip' => $iplong,
+        'visits' => 1,
+        'first_visit' => REQUEST_TIME,
+        'last_visit' => REQUEST_TIME,
+      )
         )
         ->execute();
     }
@@ -148,16 +155,16 @@ function ip_comment_insert($comment) {
  * Insert a record into the ip_posts table.
  */
 function ip_posts_insert($type, $id, $ip_address = NULL) {
-  $ip_address = is_null($ip_address) ? ip_address() : $ip_address;
+  $ip_address = is_null($ip_address)?ip_address() : $ip_address;
   $iplong = ip2long($ip_address);
   if (!empty($iplong)) {
     return db_insert('ip_posts')
       ->fields(
         array(
-          'type' => $type,
-          'id' => $id,
-          'ip' => $iplong,
-        )
+      'type' => $type,
+      'id' => $id,
+      'ip' => $iplong,
+    )
       )
       ->execute();
   }
@@ -169,9 +176,9 @@ function ip_posts_insert($type, $id, $ip_address = NULL) {
 function ip_posts_load($type, $id) {
   return db_query('SELECT * FROM {ip_posts} WHERE type = :type AND id = :id',
       array(
-        'type' => $type,
-        'id' => $id,
-      )
+    'type' => $type,
+    'id' => $id,
+  )
     )
     ->fetch();
 }
@@ -199,11 +206,43 @@ function ip_backlog_comments() {
 }
 
 /**
- * Implements hook_views_api()
+ * Implements hook_views_api().
  */
 function ip_views_api() {
   return array(
-    'api'  => views_api_version(),
+    'api' => '3.0',
+    'path' => backdrop_get_path('module', 'ip') . '/views',
+  );
+}
+
+/**
+ * Implements hook_config_info().
+ */
+function ip_config_info() {
+  $prefixes['ip.settings'] = array(
+    'label' => t('IP Address Manager settings'),
+    'group' => t('Configuration'),
+  );
+  $prefixes['views.view.ip_tracker'] = array(
+    'label' => t('IP Address for all users'),
+    'group' => t('Views'),
+  );
+  $prefixes['views.view.ip_tracker_user'] = array(
+    'label' => t('IP Address by user'),
+    'group' => t('Views'),
+  );
+  return $prefixes;
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function ip_autoload_info() {
+  return array(
+    'Ip2LongArgument' => 'src/Plugin/views/argument/Ip2LongArgument.php',
+    'IpUserCountField' => 'src/Plugin/views/field/IpUserCountField.php',
+    'Long2IpField' => 'src/Plugin/views/field/Long2IpField.php',
+    'Ip2LongFilter' => 'src/Plugin/views/filter/Ip2LongFilter.php',
   );
 }
 

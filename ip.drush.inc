@@ -1,6 +1,5 @@
 <?php
-
-/* 
+/*
  * @file
  * Drush commands.
  */
@@ -50,13 +49,16 @@ function drush_ip_backlog_comments() {
   foreach ($chunks as $chunk) {
     $progress += count($chunk);
 
-    $operations[] = array('_drush_ip_backlog_comments_process_batch', array(
-      $chunk,
-      dt('@percent% (Processing @progress of @total)', array(
-        '@percent' => round(100 * $progress / $total),
-        '@progress' => $progress,
-        '@total' => $total,
-      ))),
+    $operations[] = array(
+      '_drush_ip_backlog_comments_process_batch',
+      array(
+        $chunk,
+        dt('@percent% (Processing @progress of @total)', array(
+          '@percent' => round(100 * $progress / $total),
+          '@progress' => $progress,
+          '@total' => $total,
+        )),
+      ),
     );
   }
 
@@ -154,16 +156,19 @@ function drush_ip_backlog_nodes() {
   foreach ($chunks as $chunk) {
     $progress += count($chunk);
 
-    $operations[] = array('_drush_ip_backlog_nodes_process_batch', array(
-      $chunk,
-      dt('@percent% (Processing @progress of @total)', array(
-        '@percent' => round(100 * $progress / $total),
-        '@progress' => $progress,
-        '@total' => $total,
-      ))),
+    $operations[] = array(
+      '_drush_ip_backlog_nodes_process_batch',
+      array(
+        $chunk,
+        dt('@percent% (Processing @progress of @total)', array(
+          '@percent' => round(100 * $progress / $total),
+          '@progress' => $progress,
+          '@total' => $total,
+        )),
+      ),
     );
   }
-  
+
   $batch = array(
     'operations' => $operations,
     'title' => dt('IP backlog nodes process batch'),
@@ -190,8 +195,8 @@ function _drush_ip_backlog_nodes_list() {
       " WHERE type = 'content'" .
       " AND message = :msg",
       array(
-        ':msg' => '@type: added %title.',
-      )
+      ':msg' => '@type: added %title.',
+    )
     )->fetchAll();
   }
   return $list;
@@ -217,7 +222,7 @@ function _drush_ip_backlog_nodes_process_batch($chunk, $details, &$context) {
  */
 function _drush_ip_backlog_nodes_process_batch_task($item) {
   $success = TRUE;
-  
+
   $nid = str_replace(array('<a href="' . base_path() . 'node/', '">view</a>'), array('', ''), $item->link);
 
   // Check if node still exists.
