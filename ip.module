@@ -11,6 +11,7 @@ function ip_permission() {
   return array(
     'manage ip addresses' => array(
       'title' => t('Manage IP addresses'),
+      'description' => t("Manage IP addresses for users. Users with this permission will be able to see other users' IP addresses."),
     ),
   );
 }
