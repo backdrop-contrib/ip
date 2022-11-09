@@ -1,0 +1,254 @@
+{
+    "_config_name": "views.view.ip_demerits_user_totals",
+    "name": "ip_demerits_user_totals",
+    "description": "Demerits totaled for all users",
+    "tag": "default",
+    "disabled": false,
+    "base_table": "ip_demerits_uid_totals",
+    "human_name": "IP demerits - user totals",
+    "core": "1.23.0",
+    "display": {
+        "default": {
+            "display_title": "Master",
+            "display_plugin": "default",
+            "display_options": {
+                "query": {
+                    "type": "views_query",
+                    "options": []
+                },
+                "access": {
+                    "type": "perm",
+                    "perm": "manage ip demerits"
+                },
+                "cache": {
+                    "type": "none"
+                },
+                "exposed_form": {
+                    "type": "basic"
+                },
+                "pager": {
+                    "type": "full",
+                    "options": {
+                        "items_per_page": "10"
+                    }
+                },
+                "style_plugin": "table",
+                "row_plugin": "fields",
+                "fields": {
+                    "name": {
+                        "id": "name",
+                        "table": "users",
+                        "field": "name",
+                        "relationship": "uid",
+                        "group_type": "group",
+                        "ui_name": "",
+                        "label": "Username",
+                        "exclude": 0,
+                        "alter": {
+                            "alter_text": 0,
+                            "text": "",
+                            "make_link": 0,
+                            "path": "",
+                            "absolute": 0,
+                            "external": 0,
+                            "replace_spaces": 0,
+                            "path_case": "none",
+                            "trim_whitespace": 0,
+                            "alt": "",
+                            "rel": "",
+                            "link_class": "",
+                            "prefix": "",
+                            "suffix": "",
+                            "target": "",
+                            "nl2br": 0,
+                            "max_length": "",
+                            "word_boundary": 1,
+                            "ellipsis": 1,
+                            "more_link": 0,
+                            "more_link_text": "",
+                            "more_link_path": "",
+                            "strip_tags": 0,
+                            "trim": 0,
+                            "preserve_tags": "",
+                            "html": 0
+                        },
+                        "element_type": "",
+                        "element_class": "",
+                        "element_label_type": "",
+                        "element_label_class": "",
+                        "element_label_colon": 1,
+                        "element_wrapper_type": "",
+                        "element_wrapper_class": "",
+                        "element_default_classes": 1,
+                        "empty": "",
+                        "hide_empty": 0,
+                        "empty_zero": 0,
+                        "hide_alter_empty": 1,
+                        "link_to_user": 1,
+                        "overwrite_anonymous": 1,
+                        "anonymous_text": "Anonymous or deleted",
+                        "format_username": 1
+                    },
+                    "uid": {
+                        "table": "ip_demerits_uid_totals",
+                        "field": "uid",
+                        "id": "uid"
+                    },
+                    "points": {
+                        "id": "points",
+                        "table": "ip_demerits_uid_totals",
+                        "field": "points",
+                        "relationship": "none",
+                        "group_type": "group",
+                        "ui_name": "",
+                        "label": "Points",
+                        "exclude": 0,
+                        "alter": {
+                            "alter_text": 0,
+                            "text": "",
+                            "make_link": 0,
+                            "path": "",
+                            "absolute": 0,
+                            "external": 0,
+                            "replace_spaces": 0,
+                            "path_case": "none",
+                            "trim_whitespace": 0,
+                            "alt": "",
+                            "rel": "",
+                            "link_class": "",
+                            "prefix": "",
+                            "suffix": "",
+                            "target": "",
+                            "nl2br": 0,
+                            "max_length": "",
+                            "word_boundary": 1,
+                            "ellipsis": 1,
+                            "more_link": 0,
+                            "more_link_text": "",
+                            "more_link_path": "",
+                            "strip_tags": 0,
+                            "trim": 0,
+                            "preserve_tags": "",
+                            "html": 0
+                        },
+                        "element_type": "",
+                        "element_class": "",
+                        "element_label_type": "",
+                        "element_label_class": "",
+                        "element_label_colon": 1,
+                        "element_wrapper_type": "",
+                        "element_wrapper_class": "",
+                        "element_default_classes": 1,
+                        "empty": "",
+                        "hide_empty": 0,
+                        "empty_zero": 0,
+                        "hide_alter_empty": 1,
+                        "set_precision": false,
+                        "precision": 0,
+                        "decimal": ".",
+                        "separator": ",",
+                        "format_plural": 0,
+                        "format_plural_singular": "1",
+                        "format_plural_plural": "@count",
+                        "prefix": "",
+                        "suffix": ""
+                    }
+                },
+                "filters": {
+                    "status": {
+                        "id": "status",
+                        "table": "users",
+                        "field": "status",
+                        "relationship": "uid",
+                        "group_type": "group",
+                        "ui_name": "",
+                        "operator": "=",
+                        "value": "1",
+                        "group": "1",
+                        "exposed": true,
+                        "expose": {
+                            "operator_id": "",
+                            "label": "Active",
+                            "description": "",
+                            "use_operator": false,
+                            "operator": "status_op",
+                            "identifier": "status",
+                            "required": 1,
+                            "remember": 0,
+                            "multiple": false,
+                            "remember_roles": {
+                                "authenticated": "authenticated",
+                                "anonymous": 0,
+                                "editor": 0,
+                                "administrator": 0,
+                                "architect": 0
+                            }
+                        },
+                        "is_grouped": false,
+                        "group_info": {
+                            "label": "",
+                            "description": "",
+                            "identifier": "",
+                            "optional": true,
+                            "widget": "select",
+                            "multiple": false,
+                            "remember": 0,
+                            "default_group": "All",
+                            "default_group_multiple": [],
+                            "group_items": []
+                        }
+                    }
+                },
+                "sorts": [],
+                "title": "IP demerits - user totals",
+                "relationships": {
+                    "uid": {
+                        "id": "uid",
+                        "table": "ip_demerits_uid_totals",
+                        "field": "uid",
+                        "relationship": "none",
+                        "group_type": "group",
+                        "ui_name": "",
+                        "label": "User uid",
+                        "required": 0
+                    }
+                },
+                "header": {
+                    "area": {
+                        "id": "area",
+                        "table": "views",
+                        "field": "area",
+                        "relationship": "none",
+                        "group_type": "group",
+                        "ui_name": "",
+                        "label": "",
+                        "empty": 0,
+                        "content": "<p>These are demerit points totaled for each user. Anonymous users have a user ID of zero; deleted users have a nonzero user ID. \"Blocked\" displays both anonymous and deleted users.</p>\r\n",
+                        "format": "filtered_html",
+                        "tokenize": 0
+                    }
+                }
+            }
+        },
+        "page": {
+            "display_title": "Page",
+            "display_plugin": "page",
+            "display_options": {
+                "query": {
+                    "type": "views_query",
+                    "options": []
+                },
+                "path": "admin/people/ip-demerits/user-totals",
+                "menu": {
+                    "type": "tab",
+                    "title": "User totals",
+                    "description": "Total demerits by user",
+                    "name": "management",
+                    "weight": "0",
+                    "context": 0,
+                    "context_only_inline": 0
+                }
+            }
+        }
+    }
+}
