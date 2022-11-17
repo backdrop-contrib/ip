@@ -19,12 +19,12 @@ function ip_demerits_settings_form($form, &$form_state) {
   $form['points'] = array(
     '#type' => 'fieldset',
     '#title' => t('Points'),
-    '#description' => t('Enter the demerit points to award automatically for each user action.'),
+    '#description' => t('Enter the demerit points to award for each type of demerit.'),
   );
   $form['points']['points_manual_default'] = array(
     '#type' => 'number',
     '#title' => t('Manual default'),
-    '#description' => t('Default points for a manual demerit'),
+    '#description' => t('Default points for a manual demerit.'),
     '#min' => 0,
     '#step' => 1,
     '#default_value' => (int) $config->get('points_manual_default'),
@@ -32,18 +32,18 @@ function ip_demerits_settings_form($form, &$form_state) {
   $form['points']['points_user_blocked'] = array(
     '#type' => 'number',
     '#title' => t('User blocked'),
-    '#description' => t('Points for demerit when a user account has been blocked'),
+    '#description' => t('Points for demerit when a user account has been blocked.'),
     '#min' => 0,
     '#step' => 1,
     '#default_value' => (int) $config->get('points_user_blocked'),
   );
-  $form['points']['points_user_deleted'] = array(
+  $form['points']['points_user_cancelled'] = array(
     '#type' => 'number',
-    '#title' => t('User deleted'),
-    '#description' => t('Points for demerit when a user account has been deleted'),
+    '#title' => t('User cancelled'),
+    '#description' => t('Points for demerit when a user account has been cancelled.'),
     '#min' => 0,
     '#step' => 1,
-    '#default_value' => (int) $config->get('points_user_deleted'),
+    '#default_value' => (int) $config->get('points_user_cancelled'),
   );
 
 /*
@@ -68,28 +68,50 @@ function ip_demerits_settings_form($form, &$form_state) {
 /**
  * Assign a demerit to a user or IP address.
  */
-function ip_demerits_demerits_form($form, &$form_state) {
+function ip_demerits_create_form($form, &$form_state) {
 
-  $form['assign'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Assign a demerit'),
-    '#description' => t('Assign a demerit to a user/IP combination.'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+  $form[] = array(
+    '#type' => 'help',
+    '#markup' => t('Assign a demerit to a user/IP combination.'),
   );
-  $form['assign']['uid'] = array(
-    '#type' => 'number',
-    '#title' => t('User ID'),
-    '#description' => t('Enter the UID. TODO: replace with a user autocomplete.'),
+
+  $form['account'] = array(
+    '#type' => 'textfield',
+    '#title' => t('User account'),
+    '#description' => t('Enter the user account to assign the demerit to.'),
     '#min' => 0,
     '#step' => 1,
+    '#autocomplete_path' => 'ip_demerits_account_autocomplete',
+    '#ajax' => array(
+      'callback' => 'ip_demerits_account_ips_callback',
+      'wrapper' => 'ip-demerits-account-ips',
+    ),
   );
-  $form['assign']['ip'] = array(
-    '#type' => 'textfield',
+
+  $account_ips = array(0 => t('—Select—'));
+  $account_text = isset($form_state['input']['account']) ? $form_state['input']['account'] : '';
+  $account_parts = explode('|', $account_text);
+  $two_parts = count($account_parts) == 2;
+  $uid = 0;
+  if (count($account_parts) == 2) {
+    $uid = trim($account_parts[1]);
+    $user_records = ip_tracker_user_records($uid);
+    foreach ($user_records as $record) {
+      $account_ips[$record->ip] = $record->ip;
+    }
+  }
+  $default_ip = isset($form_state['input']['ip']) ? $form_state['input']['ip'] : 0;
+  $form['ip'] = array(
+    '#type' => 'select',
     '#title' => t('IP address'),
-    '#description' => t('Enter the IP address. TODO: replace with autocomplete based on IP addresses from the user.'),
+    '#description' => t('Select one of these IP addresses used by the chosen user.'),
+    '#options' => $account_ips,
+    '#default_value' => $default_ip,
+    '#prefix' => '<div id="ip-demerits-account-ips">',
+    '#suffix' => '</div>',
   );
-  $form['assign']['points'] = array(
+
+  $form['points'] = array(
     '#type' => 'number',
     '#title' => t('Points'),
     '#description' => t('Enter the number of points to assign to the demerit.'),
@@ -97,47 +119,99 @@ function ip_demerits_demerits_form($form, &$form_state) {
     '#step' => 1,
     '#default_value' => config_get('ip_demerits.settings', 'points_manual_default'),
   );
-  $form['assign']['reason'] = array(
+  $form['reason'] = array(
     '#type' => 'textfield',
     '#title' => t('Reason'),
     '#description' => t('Enter a short reason for the demerit.'),
+    '#size' => 80,
   );
-  $form['assign']['actions'] = array('#type' => 'actions');
-  $form['assign']['actions']['submit'] = array(
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Assign demerit'),
   );
-
-  $form[] = array(
-    '#markup' => views_embed_view('ip_demerits', 'default'),
+  $form['actions']['cancel'] = array(
+    '#type' => 'link',
+    '#title' => t('Cancel'),
+    '#href' => 'admin/people/ip-demerits',
+    '#attributes' => array(
+      'class' => array('button', 'button-secondary', 'form-submit'),
+    ),
   );
 
   return $form;
 }
 
 /**
+ * Autocomplete callback for user account.
+ */
+function ip_demerits_account_autocomplete($string) {
+  if (empty($string)) {
+    return '';
+  }
+  $matches = array();
+  $query = db_select('users', 'u');
+  $return = $query
+    ->fields('u', array('name', 'uid', 'status'))
+    ->condition('u.name', ('%' . db_like($string) . '%'), 'LIKE')
+    ->range(0, 10)
+    ->execute();
+  foreach ($return as $row) {
+    $entry = "{$row->name} | {$row->uid}";
+    $entry_sanitized = check_plain($entry);
+    $matches[$entry] = $entry_sanitized;
+  }
+  backdrop_json_output($matches);
+}
+
+/**
+ * Callback for account IPs. Return the form element with the list of IP
+ * addresses for the selected user account.
+ */
+function ip_demerits_account_ips_callback($form, $form_state) {
+  return $form['ip'];
+}
+
+/**
  * Validation function for assigning a demerit to a user or IP address.
  */
-function ip_demerits_demerits_form_validate($form, &$form_state) {
-  $ip = $form_state['values']['ip'];
-  $ip_parts = explode('.', $ip);
-  $bad_ip = count($ip_parts) != 4;
-  foreach ($ip_parts as $part) {
-    if (empty($part) || !is_numeric($part) || $part < 0 || $part > 255 || $part != round($part)) {
-      $bad_ip = TRUE;
-      break;
-    }
+function ip_demerits_create_form_validate($form, &$form_state) {
+  // Validate the username and user ID
+  $account_text = $form_state['values']['account'];
+  $account_parts = explode('|', $account_text);
+  if (count($account_parts) != 2) {
+    form_set_error('account', t('%account is not a valid entry. Please select a value from the autocomplete field.', array('%account' => $account_text)));
   }
-  if ($bad_ip) {
-    form_set_error('ip', t('%ip is not a valid IP address.', array('%ip' => $ip)));
+  else {
+    $name = trim($account_parts[0]);
+    $uid = trim($account_parts[1]);
+    $account = user_load($uid);
+    if (!$account || $name != $account->name) {
+      form_set_error('account', t('%account is not a valid entry. Please select a value from the autocomplete field.', array('%account' => $account_text)));
+    }
+
+    // Validate the IP address
+    $ip = $form_state['values']['ip'];
+    $user_records = ip_tracker_user_records($uid);
+    $user_ip = FALSE;
+    foreach ($user_records as $record) {
+      if($ip == $record->ip) {
+        $user_ip = TRUE;
+        break;
+      }
+    }
+    if (!$user_ip) {
+      form_set_error('ip', t('%ip is not an IP address used by account %name.', array('%name' => $name)));
+    }
+    $form_state['values']['uid'] = $uid;
   }
 }
 
 /**
  * Submission function for assigning a demerit to a user or IP address.
  */
-function ip_demerits_demerits_form_submit($form, &$form_state) {
-  $uid = (int) $form_state['values']['uid'];
+function ip_demerits_create_form_submit($form, &$form_state) {
+  $uid = $form_state['values']['uid'];
   $ip = $form_state['values']['ip'];
   $points = $form_state['values']['points'];
   $reason = $form_state['values']['reason'];

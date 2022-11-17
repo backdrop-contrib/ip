@@ -35,14 +35,14 @@
                 "style_plugin": "table",
                 "row_plugin": "fields",
                 "fields": {
-                    "name": {
-                        "id": "name",
-                        "table": "users",
-                        "field": "name",
-                        "relationship": "uid",
+                    "uid_name": {
+                        "id": "uid_name",
+                        "table": "ip_demerits_uid_totals",
+                        "field": "uid_name",
+                        "relationship": "none",
                         "group_type": "group",
                         "ui_name": "",
-                        "label": "Username",
+                        "label": "User",
                         "exclude": 0,
                         "alter": {
                             "alter_text": 0,
@@ -84,15 +84,63 @@
                         "hide_empty": 0,
                         "empty_zero": 0,
                         "hide_alter_empty": 1,
-                        "link_to_user": 1,
-                        "overwrite_anonymous": 1,
-                        "anonymous_text": "Anonymous or deleted",
-                        "format_username": 1
+                        "link": 1,
+                        "cancelled": "<cancelled [uid]>",
+                        "anonymous": "Anonymous"
                     },
-                    "uid": {
+                    "uid_status": {
+                        "id": "uid_status",
                         "table": "ip_demerits_uid_totals",
-                        "field": "uid",
-                        "id": "uid"
+                        "field": "uid_status",
+                        "relationship": "none",
+                        "group_type": "group",
+                        "ui_name": "",
+                        "label": "Status",
+                        "exclude": 0,
+                        "alter": {
+                            "alter_text": 0,
+                            "text": "",
+                            "make_link": 0,
+                            "path": "",
+                            "absolute": 0,
+                            "external": 0,
+                            "replace_spaces": 0,
+                            "path_case": "none",
+                            "trim_whitespace": 0,
+                            "alt": "",
+                            "rel": "",
+                            "link_class": "",
+                            "prefix": "",
+                            "suffix": "",
+                            "target": "",
+                            "nl2br": 0,
+                            "max_length": "",
+                            "word_boundary": 1,
+                            "ellipsis": 1,
+                            "more_link": 0,
+                            "more_link_text": "",
+                            "more_link_path": "",
+                            "strip_tags": 0,
+                            "trim": 0,
+                            "preserve_tags": "",
+                            "html": 0
+                        },
+                        "element_type": "",
+                        "element_class": "",
+                        "element_label_type": "",
+                        "element_label_class": "",
+                        "element_label_colon": 1,
+                        "element_wrapper_type": "",
+                        "element_wrapper_class": "",
+                        "element_default_classes": 1,
+                        "empty": "",
+                        "hide_empty": 0,
+                        "empty_zero": 0,
+                        "hide_alter_empty": 1,
+                        "cancelled": "Cancelled",
+                        "anonymous": "Anonymous",
+                        "active": "Active",
+                        "blocked": "Blocked"
                     },
                     "points": {
                         "id": "points",
@@ -155,34 +203,40 @@
                     }
                 },
                 "filters": {
-                    "status": {
-                        "id": "status",
-                        "table": "users",
-                        "field": "status",
-                        "relationship": "uid",
+                    "uid_status": {
+                        "id": "uid_status",
+                        "table": "ip_demerits_uid_totals",
+                        "field": "uid_status",
+                        "relationship": "none",
                         "group_type": "group",
                         "ui_name": "",
-                        "operator": "=",
-                        "value": "1",
+                        "operator": "in",
+                        "value": {
+                            "cancelled": "cancelled",
+                            "active": "active",
+                            "blocked": "blocked",
+                            "anonymous": "anonymous"
+                        },
                         "group": "1",
                         "exposed": true,
                         "expose": {
-                            "operator_id": "",
-                            "label": "Active",
+                            "operator_id": "uid_status_op",
+                            "label": "Status",
                             "description": "",
-                            "use_operator": false,
-                            "operator": "status_op",
-                            "identifier": "status",
-                            "required": 1,
+                            "use_operator": 0,
+                            "operator": "uid_status_op",
+                            "identifier": "uid_status",
+                            "required": 0,
                             "remember": 0,
-                            "multiple": false,
+                            "multiple": 1,
                             "remember_roles": {
                                 "authenticated": "authenticated",
                                 "anonymous": 0,
                                 "editor": 0,
                                 "administrator": 0,
                                 "architect": 0
-                            }
+                            },
+                            "reduce": 1
                         },
                         "is_grouped": false,
                         "group_info": {
@@ -201,18 +255,7 @@
                 },
                 "sorts": [],
                 "title": "IP demerits - user totals",
-                "relationships": {
-                    "uid": {
-                        "id": "uid",
-                        "table": "ip_demerits_uid_totals",
-                        "field": "uid",
-                        "relationship": "none",
-                        "group_type": "group",
-                        "ui_name": "",
-                        "label": "User uid",
-                        "required": 0
-                    }
-                },
+                "relationships": [],
                 "header": {
                     "area": {
                         "id": "area",
@@ -223,7 +266,7 @@
                         "ui_name": "",
                         "label": "",
                         "empty": 0,
-                        "content": "<p>These are demerit points totaled for each user. Anonymous users have a user ID of zero; deleted users have a nonzero user ID. \"Blocked\" displays both anonymous and deleted users.</p>\r\n",
+                        "content": "<p>These are demerit points totaled for each user.</p>\r\n",
                         "format": "filtered_html",
                         "tokenize": 0
                     }

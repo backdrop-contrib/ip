@@ -12,6 +12,12 @@ function ip_demerits_schema() {
   $schema['ip_demerits'] = array(
     'description' => 'Stores IP demerits',
     'fields' => array(
+       'demerit_id' => array(
+        'description' => 'Primary key: unique ID for a demerit.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
       'ip' => array(
         'type' => 'int',
         'size' => 'big',
@@ -45,6 +51,7 @@ function ip_demerits_schema() {
         'description' => 'Reason for the demerit',
       ),
     ),
+    'primary key' => array('demerit_id'),
   );
 
   // Schema for total points by ip

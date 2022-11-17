@@ -8,6 +8,8 @@
  * Implements hook_menu().
  */
 function ip_demerits_menu() {
+
+  // Configuration
   $items['admin/config/people/ip-demerits'] = array(
     'title' => 'IP demerits',
     'description' => 'Manage IP demerits.',
@@ -17,31 +19,29 @@ function ip_demerits_menu() {
     'file' => 'ip_demerits.admin.inc',
   );
 
-  $items['admin/people/ip-demerits'] = array(
+  // Admin pages (in addition to pages created by Views)
+  $items['admin/people/ip-demerits/create'] = array(
     'title' => 'IP demerits',
-    'description' => 'Assign IP demerits.',
+    'description' => 'Create an IP demerit.',
     'page callback' => 'backdrop_get_form',
-    'page arguments' => array('ip_demerits_demerits_form'),
+    'page arguments' => array('ip_demerits_create_form'),
     'access arguments' => array('manage ip demerits'),
     'file' => 'ip_demerits.admin.inc',
-    'weight' => 2,
-    'type' => MENU_LOCAL_TASK,
-  );
-  $items['admin/people/ip-demerits/demerits'] = array(
-    'title' => 'Demerits',
-    'description' => 'Show and/or assign IP demerits.',
-    'page callback' => 'backdrop_get_form',
-    'page arguments' => array('ip_demerits_demerits_form'),
-    'access arguments' => array('manage ip demerits'),
-    'file' => 'ip_demerits.admin.inc',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -1,
+    'type' => MENU_NORMAL_ITEM,
   );
   $items['admin/people/ip-details/%'] = array(
     'title' => 'IP demerits',
     'description' => 'IP details by IP address',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('ip_demerits_ip_details_form', 3),
+    'access arguments' => array('manage ip demerits'),
+    'file' => 'ip_demerits.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  // Autocomplete path for user account
+  $items['ip_demerits_account_autocomplete'] = array(
+    'page callback' => 'ip_demerits_account_autocomplete',
     'access arguments' => array('manage ip demerits'),
     'file' => 'ip_demerits.admin.inc',
     'type' => MENU_CALLBACK,
@@ -131,6 +131,15 @@ function ip_demerits_views_api() {
 }
 
 /**
+ * Implements hook_autoload_info().
+ */
+function ip_demerits_autoload_info() {
+  return array(
+    'IpDemeritEntity' => 'ip_demerits.entity.inc',
+  );
+}
+
+/**
  * Assign a demerit to an IP address and user.
  *
  * @param long $ip
@@ -186,6 +195,42 @@ function ip_demerits_assign($ip, $uid, $points, $reason) {
 }
 
 /**
+ * Implements hook_entity_info().
+ *
+ * Implement this as an entity so that Views Bulk Operations can apply bulk
+ * operations to it.
+ */
+function ip_demerits_entity_info() {
+  return array(
+    'ip_demerit' => array(
+      'label' => t('IP Demerit'),
+      'entity class' => 'IpDemeritEntity',
+      'base table' => 'ip_demerits',
+      'fieldable' => TRUE,
+      'entity keys' => array(
+        'id' => 'demerit_id',
+        'ip' => 'ip',
+        'uid' => 'uid',
+      ),
+      'module' => 'ip_demerits',
+    ),
+  );
+}
+
+/**
+ * Implement hook_action_info().
+ */
+function ip_demerits_action_info() {
+  $actions['ip_demerit_remove'] = array(
+    'label' => t('Remove demerit(s)'),
+    'type' => 'ip_demerit',
+    'callback' => 'ip_demerits_remove_demerit_action',
+    'file' => 'ip_demerits.actions.inc',
+  );
+  return $actions;
+}
+
+/**
  * Implements hook_user_update().
  */
 function ip_demerits_user_update($account) {
@@ -205,11 +250,11 @@ function ip_demerits_user_update($account) {
  * Implements hook_user_delete().
  */
 function ip_demerits_user_delete($account) {
-  $points = config_get('ip_demerits.settings', 'points_user_deleted');
+  $points = config_get('ip_demerits.settings', 'points_user_cancelled');
   if ($points) {
     $ip = _ip_demerits_latest_ip($account);
-    ip_demerits_assign($ip, $account->uid, $points, t('Account was deleted.'));
-    watchdog('ip_demerits', t('A demerit was assigned to @ip because account %name was deleted', array(
+    ip_demerits_assign($ip, $account->uid, $points, t('Account was cancelled.'));
+    watchdog('ip_demerits', t('A demerit was assigned to @ip because account %name was cancelled', array(
       ':ip' => long2ip($ip),
       '%name' => $account->name)));
   }

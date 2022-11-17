@@ -17,10 +17,10 @@ Installation
 
 Usage:
 
-- Go to /user/%user/ip to see this user's IP addresses and any demerits they have received.
-- Go to /admin/people/ip-demerits to see all demerits and/or assign a demerit manually. This page has two sub-tabs:
-  - User totals (admin/people/ip-demerits/user-totals) — display total demerit points by user
-  - IP totals (admin/people/ip-demerits/ip-totals) — display total demerit points by IP address.
+- Go to `user/%user/ip` to see this user's IP addresses and any demerits they have received.
+- Go to `admin/people/ip-demerits` to see all demerits and/or assign a demerit manually. This page has two additional sub-tabs:
+  - User totals (`admin/people/ip-demerits/user-totals`) — display total demerit points by user
+  - IP totals (`admin/people/ip-demerits/ip-totals`) — display total demerit points by IP address.
 
 This module is integrated with Views so you can create your own Views and/or modify the built-in Views.
 

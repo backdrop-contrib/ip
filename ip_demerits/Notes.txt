@@ -6,7 +6,7 @@ Manual demerit
 
 Blocked user
 
-Deleted user
+Cancelled user
 
 
 ## Actions to potentially take
@@ -20,7 +20,7 @@ Block IP
 
 ## Settings for demerits
 
-Number of points for each of manual demerit, blocked user, deleted user
+Number of points for each of manual demerit, blocked user, cancelled user
 
 
 

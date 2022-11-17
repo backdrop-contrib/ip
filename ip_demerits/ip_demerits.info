@@ -4,3 +4,5 @@ backdrop = 1.x
 type = module
 
 dependencies[] = ip
+
+configure = admin/config/people/ip-demerits
