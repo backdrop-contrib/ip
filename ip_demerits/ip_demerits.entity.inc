@@ -1,17 +1,17 @@
 <?php
 /**
  * @file
- * IP Demerit base class and interface.
+ * IP Demerit class and interface.
  */
 
 /**
- * IpDemeritEntity extends Entity.
+ * IpDemerit extends Entity.
  *
  * A subclass of Entity is a requirement for creating a custom entity. It is
  * also a minimum requirement to define the methods included here, even as
  * empty functions.
  */
-class IpDemeritEntity extends Entity {
+class IpDemerit extends Entity {
 
   /**
    * Implements EntityInterface::id().

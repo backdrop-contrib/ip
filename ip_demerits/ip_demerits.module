@@ -135,7 +135,7 @@ function ip_demerits_views_api() {
  */
 function ip_demerits_autoload_info() {
   return array(
-    'IpDemeritEntity' => 'ip_demerits.entity.inc',
+    'IpDemerit' => 'ip_demerits.entity.inc',
   );
 }
 
@@ -204,13 +204,11 @@ function ip_demerits_entity_info() {
   return array(
     'ip_demerit' => array(
       'label' => t('IP Demerit'),
-      'entity class' => 'IpDemeritEntity',
+      'entity class' => 'IpDemerit',
       'base table' => 'ip_demerits',
       'fieldable' => TRUE,
       'entity keys' => array(
         'id' => 'demerit_id',
-        'ip' => 'ip',
-        'uid' => 'uid',
       ),
       'module' => 'ip_demerits',
     ),

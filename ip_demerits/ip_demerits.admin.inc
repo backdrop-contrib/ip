@@ -13,7 +13,7 @@ function ip_demerits_settings_form($form, &$form_state) {
 
   $form[] = array(
     '#type' => 'help',
-    '#markup' => t('Configure demerits for user actions and actions based on user demerits.'),
+    '#markup' => t('Configure demerits for automatic application based on user actions.'),
   );
 
   $form['points'] = array(
@@ -47,6 +47,9 @@ function ip_demerits_settings_form($form, &$form_state) {
   );
 
 /*
+  // TODO: add automatic actions to take place when a user or IP address's
+  // demerit points exceed a specified threshold.
+
   $form['take_actions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Actions'),
