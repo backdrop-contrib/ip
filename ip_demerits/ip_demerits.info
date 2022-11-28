@@ -1,0 +1,8 @@
+name = IP Demerits
+description = Give demerits to IP addresses and/or users and act on them.
+backdrop = 1.x
+type = module
+
+dependencies[] = ip
+
+configure = admin/config/people/ip-demerits
