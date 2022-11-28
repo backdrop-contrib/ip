@@ -7,9 +7,7 @@
 /**
  * IpDemerit extends Entity.
  *
- * A subclass of Entity is a requirement for creating a custom entity. It is
- * also a minimum requirement to define the methods included here, even as
- * empty functions.
+ * We need to create an Entity in order to use Views Bulk Actions on demerits.
  */
 class IpDemerit extends Entity {
 
