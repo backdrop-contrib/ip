@@ -37,6 +37,8 @@ function ip_permission() {
  * Implements hook_user_login().
  */
 function ip_user_login(&$edit, $account) {
+//dpm($account,'$account (ip_user_login, '. $account->name . ')');
+  _ip_demasquerade($account);
   ip_tracker_user_save($account->uid);
 }
 
@@ -47,7 +49,19 @@ function ip_user_insert($account) {
   global $user;
   // Track anonymous registration (Do not track administration account creation).
   if (empty($user->uid) || $user->uid == $account->uid) {
+//dpm($account,'$account (ip_user_insert, '. $account->name . ')');
+    _ip_demasquerade($account);
     ip_tracker_user_save($account->uid);
+  }
+}
+
+/**
+ * If the account is masquerading as another, return the real account.
+ */
+function _ip_demasquerade(&$account) {
+  global $user;
+  if (module_exists('masquerade') && !empty($user->masquerading)) {
+    $account = user_load($user->masquerading);
   }
 }
 
