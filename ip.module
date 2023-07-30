@@ -173,7 +173,7 @@ function ip_comment_insert($comment) {
  * Insert a record into the ip_posts table.
  */
 function ip_posts_insert($type, $id, $ip_address = NULL) {
-  $ip_address = is_null($ip_address)?ip_address() : $ip_address;
+  $ip_address = is_null($ip_address) ? ip_address() : $ip_address;
   $iplong = ip2long($ip_address);
   if (!empty($iplong)) {
     return db_insert('ip_posts')
@@ -257,6 +257,41 @@ function ip_config_info() {
 }
 
 /**
+ * Implements hook_entity_info().
+ *
+ * Implement this as an entity so that Views Bulk Operations can apply bulk
+ * operations to it.
+ */
+function ip_entity_info() {
+  return array(
+    'ip_address' => array(
+      'label' => t('IP Address'),
+      'entity class' => 'IpAddress',
+      'base table' => 'ip_tracker',
+      'fieldable' => TRUE,
+      'entity keys' => array(
+        'id' => 'uid',
+        'ip' => 'ip',
+      ),
+      'module' => 'ip',
+    ),
+  );
+}
+
+/**
+ * Implement hook_action_info().
+ */
+function ip_action_info() {
+  $actions['ip_address_remove'] = array(
+    'label' => t('Remove IP Address(es)'),
+    'type' => 'ip_address',
+    'callback' => 'ip_remove_address_action',
+    'file' => 'ip_address.actions.inc',
+  );
+  return $actions;
+}
+
+/**
  * Implements hook_autoload_info().
  */
 function ip_autoload_info() {
@@ -277,6 +312,9 @@ function ip_autoload_info() {
     'views_handler_field_uid_name' => 'src/Plugin/views/field/views_handler_field_uid_name.inc',
     'views_handler_filter_uid_name' => 'src/Plugin/views/filter/views_handler_filter_uid_name.inc',
     'views_handler_sort_uid_name' => 'src/Plugin/views/sort/views_handler_sort_uid_name.inc',
+
+    // Entity classes
+    'IpAddress' => 'ip_address.entity.inc',
   );
 }
 

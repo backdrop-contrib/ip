@@ -45,6 +45,17 @@ function ip_views_data() {
     ),
   );
 
+  // Bulk operations on individual user IP addresses
+  $data['ip_tracker']['bulk_form'] = array(
+    'title' => t('Bulk operations'),
+    'help' => t('Provides a checkbox on each row and a form for executing bulk actions on IP addresses.'),
+    'real field' => 'uid',
+    'field' => array(
+      'handler' => 'views_handler_field_bulk_form',
+      'click sortable' => FALSE,
+    ),
+  );
+
   // Uid status field
   $data['ip_tracker']['uid_status'] = array(
     'title' => t('User id-based status'),
