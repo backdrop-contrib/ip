@@ -11,6 +11,12 @@ function ip_schema() {
   $schema['ip_tracker'] = array(
     'description' => 'Stores IP addresses against uids.',
     'fields' => array(
+       'ip_tracker_id' => array(
+        'description' => 'Primary key: unique ID for a User ID/IP Address combination.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
       'uid' => array(
         'type' => 'int',
         'not null' => TRUE,
@@ -40,7 +46,7 @@ function ip_schema() {
         'not null' => TRUE,
       ),
     ),
-    'primary key' => array('uid', 'ip'),
+    'primary key' => array('ip_tracker_id', 'uid', 'ip'),
   );
   $schema['ip_posts'] = array(
     'description' => 'Stores ips against nids/cids.',
@@ -75,4 +81,26 @@ function ip_schema() {
  */
 function ip_update_1200() {
   config_install_default_config('ip', 'views.view.ip_address_users_by_ip');
+}
+
+/**
+ * Add 'ip_tracker_id' column to the ip_tracker table.
+ */
+function ip_update_1201() {
+  $spec = array(
+    'description' => 'Primary key: unique ID for a User ID/IP Address combination.',
+    'type' => 'serial',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+  );
+  $keys = array(
+    'indexes' => array(
+      'ip_tracker_id' => array('ip_tracker_id'),
+      'uid' => array('uid'),
+      'ip' => array('ip'),
+    ),
+  );
+  db_add_field('ip_tracker', 'ip_tracker_id', $spec, $keys);
+  db_drop_primary_key('ip_tracker');
+  db_add_primary_key('ip_tracker', array('ip_tracker_id', 'uid', 'ip'));
 }

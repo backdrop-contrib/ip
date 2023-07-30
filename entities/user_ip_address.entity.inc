@@ -1,16 +1,16 @@
 <?php
 /**
  * @file
- * IP Address class and interface.
+ * User IP Address class and interface.
  */
 
 /**
- * IpAddress extends Entity.
+ * UserIpAddress extends Entity.
  *
  * We need to create an Entity in order to use Views Bulk Actions on tracked
- * IP addresses.
+ * User IP addresses.
  */
-class IpAddress extends Entity {
+class UserIpAddress extends Entity {
 
   /**
    * Implements EntityInterface::id().
@@ -23,7 +23,7 @@ class IpAddress extends Entity {
    * Implements EntityInterface::entityType().
    */
   public function entityType() {
-    return 'ip_address';
+    return 'user_ip_address';
   }
 
   /**

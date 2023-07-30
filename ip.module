@@ -259,19 +259,18 @@ function ip_config_info() {
 /**
  * Implements hook_entity_info().
  *
- * Implement this as an entity so that Views Bulk Operations can apply bulk
- * operations to it.
+ * Implement User/IP Address records as an entity so that Views Bulk Operations
+ * can apply bulk operations to it.
  */
 function ip_entity_info() {
   return array(
-    'ip_address' => array(
-      'label' => t('IP Address'),
-      'entity class' => 'IpAddress',
+    'user_ip_address' => array(
+      'label' => t('User IP Address'),
+      'entity class' => 'UserIpAddress',
       'base table' => 'ip_tracker',
       'fieldable' => TRUE,
       'entity keys' => array(
-        'id' => 'uid',
-        'ip' => 'ip',
+        'id' => 'ip_tracker_id',
       ),
       'module' => 'ip',
     ),
@@ -282,11 +281,11 @@ function ip_entity_info() {
  * Implement hook_action_info().
  */
 function ip_action_info() {
-  $actions['ip_address_remove'] = array(
-    'label' => t('Remove IP Address(es)'),
-    'type' => 'ip_address',
-    'callback' => 'ip_remove_address_action',
-    'file' => 'ip_address.actions.inc',
+  $actions['user_ip_address_remove'] = array(
+    'label' => t('Remove User IP Address(es)'),
+    'type' => 'user_ip_address',
+    'callback' => 'user_ip_address_remove_action',
+    'file' => 'entities/user_ip_address.actions.inc',
   );
   return $actions;
 }
@@ -314,7 +313,7 @@ function ip_autoload_info() {
     'views_handler_sort_uid_name' => 'src/Plugin/views/sort/views_handler_sort_uid_name.inc',
 
     // Entity classes
-    'IpAddress' => 'ip_address.entity.inc',
+    'UserIpAddress' => 'entities/user_ip_address.entity.inc',
   );
 }
 
