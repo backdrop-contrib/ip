@@ -21,6 +21,35 @@ function ip_views_data() {
     'weight' => -10,
   );
 
+  // IP Tracker ID field
+  $data['ip_tracker']['ip_tracker_id'] = array(
+    'title' => t('IP tracker ID'),
+    'help' => t('Unique id of user/ip combination'),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
+  );
+
+  // Bulk operations on individual user IP addresses
+  $data['ip_tracker']['bulk_form'] = array(
+    'title' => t('Bulk operations'),
+    'help' => t('Provides a checkbox on each row and a form for executing bulk actions on user IP addresses.'),
+    'real field' => 'ip_tracker_id',
+    'field' => array(
+      'handler' => 'views_handler_field_bulk_form',
+      'click sortable' => FALSE,
+    ),
+  );
+
   // Uid field
   $data['ip_tracker']['uid'] = array(
     'title' => t('User id'),
