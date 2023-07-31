@@ -40,7 +40,7 @@ New in version 2.1.0
 New in version 2.2.0
 --------------------
 
-- The various IP address listings support Views Bulk Operations, allowing selective removal of existing user/IP address records from the system by admins. New installations add the VBO functionality. Upgrades from older versions are left unchanged, but you can add the functionality by importing the Views from the module config folder or by editing the existing Views to add the "IP Tracker: Bulk operations" field.
+- The various IP address listings support Bulk Operations, allowing selective removal of existing user/IP address records from the system by admins. New installations add the BO functionality. Upgrades from older versions are left unchanged, but you can add the functionality by importing the Views from the module config folder or by editing the existing Views to add the "IP Tracker: Bulk operations" field.
 
 Issues
 ------

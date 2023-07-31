@@ -152,8 +152,8 @@ function ip_demerits_assign($ip, $uid, $points, $reason) {
 /**
  * Implements hook_entity_info().
  *
- * Implement this as an entity so that Views Bulk Operations can apply bulk
- * operations to it.
+ * Implement IP Demerits as an entity so that Views can apply Bulk Operations to
+ * it.
  */
 function ip_demerits_entity_info() {
   return array(

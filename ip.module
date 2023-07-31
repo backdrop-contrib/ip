@@ -259,8 +259,8 @@ function ip_config_info() {
 /**
  * Implements hook_entity_info().
  *
- * Implement User/IP Address records as an entity so that Views Bulk Operations
- * can apply bulk operations to it.
+ * Implement User/IP Address records as an entity so that Views can apply
+ * Bulk Operations to it.
  */
 function ip_entity_info() {
   return array(
