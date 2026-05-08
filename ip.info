@@ -2,3 +2,4 @@ name = IP Address Manager
 description = Manage user IP addresses.
 backdrop = 1.x
 type = module
+maintainers[bugfolder] = Robert J. Lang
