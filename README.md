@@ -19,6 +19,8 @@ Usage:
 - Go to `user/%user/ip` to see this user's IP addresses.
 - Go to `admin/people/ip` to see all users' IP addresses.
 
+Clicking on an IP address in one of these listings will bring up a page listing all users that have visited from that IP address.
+
 This module is integrated with Views so you can create your own Views and/or modify the Views provided with this module.
 
 Optional: this module provides drush commands to insert IP address data loaded prior to module installation.
@@ -34,6 +36,11 @@ New in version 2.1.0
 - The Views provided by this module now make a distinction between cancelled and anonymous users when displaying them in tables. New installations will use the new functionality. Upgrades from older versions are left unchanged, but you can modify the existing Views tables to use the new "User id-based..." fields that display this information.
 
 - Beginning with this version, there is a sub-module, IP Demerits, that supports the assignment, removal, and recording of demerits against users and/or IP addresses. See the README file for the sub-module for further information.
+
+New in version 2.2.0
+--------------------
+
+- The various IP address listings support Bulk Operations, allowing selective removal of existing user/IP address records from the system by admins. New installations add the BO functionality. Upgrades from older versions are left unchanged, but you can add the functionality by importing the Views from the module config folder or by editing the existing Views to add the "IP Tracker: Bulk operations" field.
 
 Issues
 ------
